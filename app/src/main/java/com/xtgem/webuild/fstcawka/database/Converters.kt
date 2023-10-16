@@ -5,6 +5,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.room.TypeConverter
 import com.xtgem.webuild.fstcawka.models.enums.Bills
+import com.xtgem.webuild.fstcawka.models.enums.CourseReaction
 import com.xtgem.webuild.fstcawka.models.enums.Gender
 import com.xtgem.webuild.fstcawka.models.enums.Grade
 import com.xtgem.webuild.fstcawka.models.enums.PaymentMethod
@@ -42,6 +43,17 @@ class Converters {
     @TypeConverter
     fun toGrade(value: String): Grade{
         return  Grade.valueOf(value)
+    }
+
+    // Reaction
+    @TypeConverter
+    fun fromReaction(value: CourseReaction): String{
+        return value.name
+    }
+
+    @TypeConverter
+    fun toReaction(value: String): CourseReaction{
+        return  CourseReaction.valueOf(value)
     }
 
     // Gender

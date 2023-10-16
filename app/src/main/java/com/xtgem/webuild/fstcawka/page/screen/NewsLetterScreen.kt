@@ -1,14 +1,10 @@
 package com.xtgem.webuild.fstcawka.page.screen
 
-import android.content.Context
-import android.widget.ImageView
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.indication
-import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -32,57 +28,53 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.HorizontalRule
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.gandiva.neumorphic.neu
+import coil.compose.AsyncImage
 import com.xtgem.webuild.fstcawka.R
+import com.xtgem.webuild.fstcawka.misc.Uncategorized
+import com.xtgem.webuild.fstcawka.models.entities.DataResult
 import com.xtgem.webuild.fstcawka.models.entities.News
 import com.xtgem.webuild.fstcawka.models.enums.NewsCategory
 import com.xtgem.webuild.fstcawka.models.enums.Screens
 import com.xtgem.webuild.fstcawka.models.enums.Subjects
+import com.xtgem.webuild.fstcawka.page.component.ErrorMessage
 import com.xtgem.webuild.fstcawka.page.component.NavFooter
-import com.xtgem.webuild.fstcawka.page.component.defaultFlatNeuAttrs1
+import com.xtgem.webuild.fstcawka.page.viewmodel.NewsLetterScreenViewModel
 import com.xtgem.webuild.fstcawka.ui.theme.custom.MyFonts
-import com.xtgem.webuild.fstcawka.ui.theme.custom.defaultFlatNeuAttrs
-import com.xtgem.webuild.fstcawka.ui.theme.custom.defaultPressedNetAttrs
-import java.time.LocalDateTime
 import java.util.UUID
 
 @Preview
@@ -93,20 +85,28 @@ fun NewsLetterScreenPreview() {
 
 
 val TOP_BAR_HEIGHT = 60.dp
-val LazyGridState.isScrolled: Boolean
+val LazyListState.isScrolled: Boolean
     get() = firstVisibleItemIndex > 0 || firstVisibleItemScrollOffset > 0
 
+val LazyGridState.isScrolling: Boolean
+    get() = firstVisibleItemIndex > 1 || firstVisibleItemScrollOffset > 1
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewsLetterScreen(userId: String = "", navController: NavController = rememberNavController()) {
-    val lazyListState = rememberLazyGridState()
+fun NewsLetterScreen(navController: NavController = rememberNavController()) {
+    val viewModel = viewModel<NewsLetterScreenViewModel>()
+    val allNews = remember { mutableStateOf(DataResult<List<News>>(isLoading = true)) }
+    LaunchedEffect(Unit) {
+        viewModel.allNews.observeForever { data ->
+            allNews.value = data
+        }
+    }
+
+    val lazyListState = rememberLazyListState()
+    val lazyGridState = rememberLazyGridState()
 
     val selectedIndex = remember {
         mutableIntStateOf(0)
-    }
-    val category = remember {
-        mutableStateOf(NewsCategory.values()[selectedIndex.intValue])
     }
 
 
@@ -120,34 +120,98 @@ fun NewsLetterScreen(userId: String = "", navController: NavController = remembe
             Column(modifier = Modifier
                 .fillMaxWidth()
                 .animateContentSize(animationSpec = tween(durationMillis = 500))
-                .height(if (lazyListState.isScrollInProgress) 0.dp else TOP_BAR_HEIGHT)
+                .height(
+                    if (lazyListState.isScrollInProgress
+                        || lazyGridState.isScrollInProgress
+                    ) 0.dp else TOP_BAR_HEIGHT
+                )
             ) {
                 NavFooter(screen = Screens.NewsLetter, onHomeClick = {
-                    navController.navigate(Screens.Home.withArg(userId))
+                    navController.navigate(Screens.Home.route)
                 }) {
                     // Go to profile
-                    navController.navigate(Screens.Profile.withArg(userId))
+                    navController.navigate(Screens.Profile.route)
                 }
             }
         }
     ) { scaffoldPadding ->
         Column(modifier = Modifier.padding(scaffoldPadding)) {
-            CategorySelector(lazyListState,
-                selectedIndex.intValue) { clickedIndex ->
-                selectedIndex.intValue = clickedIndex
-            }
-            LazyVerticalGrid(modifier = Modifier
-                .background(MaterialTheme.colorScheme.background)
-                .padding(start = 16.dp, end = 16.dp, top = 16.dp),
-                state = lazyListState,
-                columns = GridCells.Adaptive(minSize = 128.dp)) {
-                item {
-                    NewsBanner()
+            when {
+                allNews.value.isLoading -> {
+                    Column(modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(45.dp), color = Color.Black)
+                    }
+                }
+                allNews.value.error != null -> {
+                    Column(modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = 280.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(text = "Oops. Bills Not Available",
+                            color = Color(0xFF444343),
+                            style = TextStyle(fontWeight = FontWeight.Light,
+                                fontSize = 20.sp, fontFamily = MyFonts.customFontFamily[2]),
+                            modifier = Modifier.padding(top = 3.dp))
+                    }
+                }
+                else -> {
+                    val data = allNews.value.data
+                    if (data!!.isNotEmpty()) {
+                        val selectedCategory = if (selectedIndex.intValue != 0)
+                            allNews.value.data?.filter { it.category == NewsCategory.values()[selectedIndex.intValue] }?.toMutableList()
+                        else allNews.value.data?.toMutableList()
+
+                        CategorySelector(lazyListState,
+                            selectedIndex.intValue) { clickedIndex ->
+                            selectedIndex.intValue = clickedIndex
+                        }
+                        LazyColumn(modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(),
+                            state = lazyListState) {
+                            item {
+                                val news = selectedCategory?.find { it.wideBanner }
+                                if (news != null) {
+                                    WideNewsBanner(news = news, lazyGridState) { newsId ->
+                                        navController.navigate(Screens.NewsLetterDetail.withArg(newsId.toString()))
+                                    }
+                                }
+                            }
+
+                            item {
+                                Divider(modifier = Modifier
+                                    .height(0.5.dp),
+                                    color = MaterialTheme.colorScheme.onBackground)
+                            }
+
+                            item {
+                                LazyVerticalGrid(modifier = Modifier
+                                    .height(800.dp)
+                                    .padding(start = 16.dp, end = 16.dp),
+                                    columns = GridCells.Adaptive(minSize = 188.dp),
+                                    state = lazyGridState) {
+                                    //val otherNews = selectedCategory?.filter { !it.wideBanner }
+                                    if (selectedCategory != null) {
+                                        items(selectedCategory) {
+                                            NewsBanner(it) { newsId ->
+                                                navController.navigate(Screens.NewsLetterDetail.withArg(newsId.toString()))
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                    }else {
+                        ErrorMessage(delay = 2000L, message = "Oops. News Not Available", load = true)
+                    }
                 }
 
-                items(Subjects.values()) {
-                    NewsBanner(wideBanner = false)
-                }
             }
         }
     }
@@ -155,53 +219,46 @@ fun NewsLetterScreen(userId: String = "", navController: NavController = remembe
 
 
 @Composable
-fun NewsBanner(
-    wideBanner: Boolean = false
+fun WideNewsBanner(
+    news: News,
+    lazyGridState: LazyGridState,
+    onClick: (UUID) -> Unit
 ) {
-    val padding = if (wideBanner) PaddingValues(top = 16.dp, bottom = 16.dp)
-        else PaddingValues(top = 0.dp, bottom = 0.dp)
     Column(modifier = Modifier
         .fillMaxWidth()
-        .height(if (wideBanner) 320.dp else 230.dp)
-        .padding(padding),
+        .height(if (lazyGridState.isScrolling) 0.dp else 280.dp)
+        .padding(top = 16.dp, bottom = 0.dp, start = 16.dp, end = 16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Card(
             modifier = Modifier
                 .fillMaxSize()
-                //.neu(defaultFlatNeuAttrs())
                 .clickable {
-
+                    onClick(news.newsId)
                 }
                 .clipToBounds(),
-            shape = RoundedCornerShape(if (wideBanner) 24.dp else 12.dp),
+            shape = RoundedCornerShape(24.dp),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.background
             )
         ){
             Column(modifier = Modifier
                 .fillMaxWidth()
-                .padding(if (wideBanner) 8.dp else 4.dp)) {
+                .padding(8.dp)) {
                 Column(modifier = Modifier
                     .fillMaxWidth()
-                    .height(if (wideBanner) 200.dp else 175.dp)
-                    .clip(RoundedCornerShape(if (wideBanner) 8.dp else 4.dp))) {
+                    .height(200.dp)
+                    .clip(RoundedCornerShape(8.dp))) {
                     // Add child components here.
-                    Image(
-                        painter = painterResource(id = R.drawable.img),
-                        contentDescription = null,
+                    AsyncImage(model = news.imageLink, contentDescription = null,
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize(),
-                        colorFilter = ColorFilter.tint(
-                            Color(0xFF6F4329).copy(alpha = 0.1f),
-                            blendMode = BlendMode.Multiply)
-                    )
+                        modifier = Modifier.fillMaxSize())
                 }
 
                 Spacer(modifier = Modifier.height(5.dp))
-                Text(text = "The Statue of Liberty, officially ",
-                    fontSize = if (wideBanner) 18.sp else 10.sp,
+                Text(text = "${news.title.take(35)}...",
+                    fontSize = 18.sp,
                     color = MaterialTheme.colorScheme.onBackground,
                     fontFamily = MyFonts.customFontFamily[5],
                     modifier = Modifier.fillMaxWidth())
@@ -209,7 +266,7 @@ fun NewsBanner(
                 Spacer(modifier = Modifier.height(3.dp))
                 Row(modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End) {
-                    Text(text = "08-03-2023", fontSize = if (wideBanner) 18.sp else 10.sp,
+                    Text(text = Uncategorized().simpleDateFormatter(news.createdDate), fontSize = 18.sp,
                         style = MaterialTheme.typography.headlineSmall)
                 }
             }
@@ -222,8 +279,63 @@ fun NewsBanner(
 
 
 @Composable
+fun NewsBanner(news: News, onClick: (UUID) -> Unit) {
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .height(230.dp)
+            .padding(top = 16.dp, bottom = 0.dp, end = 4.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clickable {
+                        onClick(news.newsId)
+                    }
+                    .clipToBounds(),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
+            ){
+                Column(modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(4.dp)) {
+                    Column(modifier = Modifier
+                        .fillMaxWidth()
+                        .height(175.dp)
+                        .clip(RoundedCornerShape(4.dp))) {
+                        // Add child components here.
+                        AsyncImage(model = news.imageLink, contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize())
+                    }
+
+                    Spacer(modifier = Modifier.height(5.dp))
+                    Text(text = "${news.title.take(30)}...",
+                        fontSize = 10.sp,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        fontFamily = MyFonts.customFontFamily[5],
+                        modifier = Modifier.fillMaxWidth())
+
+                    Spacer(modifier = Modifier.height(3.dp))
+                    Row(modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End) {
+                        Text(text = Uncategorized().simpleDateFormatter(news.createdDate), fontSize = 10.sp,
+                            style = MaterialTheme.typography.headlineSmall)
+                    }
+                }
+
+            }
+        }
+
+}
+
+
+@Composable
 fun NewsLetterHeader(
-    lazyListState: LazyGridState
+    lazyListState: LazyListState
 ) {
     Column(modifier = Modifier
         .background(MaterialTheme.colorScheme.background)
@@ -243,7 +355,7 @@ fun NewsLetterHeader(
 
 @Composable
 fun CategorySelector(
-    lazyListState: LazyGridState,
+    lazyListState: LazyListState,
     selectedIndex: Int?, onClick: (Int) -> Unit) {
     Column(modifier = Modifier
         .fillMaxWidth()
@@ -271,7 +383,7 @@ fun CategorySelector(
 }
 
 @Composable
-fun CategoryCell(lazyListState: LazyGridState, index: Int, selectedIndex: Int?,
+fun CategoryCell(lazyListState: LazyListState, index: Int, selectedIndex: Int?,
                  newsCategory: NewsCategory = NewsCategory.Housing,
                  onClick: (Int) -> Unit) {
     Column(modifier = Modifier

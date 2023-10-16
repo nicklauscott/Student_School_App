@@ -93,16 +93,10 @@ fun HomeScreen(navController: NavController = rememberNavController(),
             NavFooter(Screens.Home,
                 onNewsClick = {
                     // go to news screen
-//                    val intent = MainActivity.newInstance(context, Screens.NewsLetter, UUID.randomUUID())
-//                    intent.flags = Intent.FLAG_ACTIVITY_NO_HISTORY
-//                    context.startActivity(intent)
-                              navController.navigate(Screens.NewsLetter.withArg(id))
+                              navController.navigate(Screens.NewsLetter.route)
                 },
                 onProfileClick = {
                     // go to profile screen
-//                    val intent = MainActivity.newInstance(context, Screens.Profile, UUID.randomUUID())
-//                    intent.flags = Intent.FLAG_ACTIVITY_NO_HISTORY
-//                    context.startActivity(intent)
                     navController.navigate(Screens.Profile.withArg(id))
             })
         }
@@ -141,7 +135,8 @@ fun HomeScreen(navController: NavController = rememberNavController(),
                             label = "E-Learning",
                             icon = newsLetterIcon
                         ) {
-                            Toast.makeText(context, "E-Learning", Toast.LENGTH_SHORT).show()
+                            val uid = UUID.fromString("ae4c602d-a7aa-47af-a018-30ec6a5c67ca")
+                            navController.navigate(route = Screens.Course.withArg(uid.toString()))
                         }
                     }
 

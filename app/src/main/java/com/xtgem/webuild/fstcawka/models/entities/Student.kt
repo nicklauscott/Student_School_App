@@ -18,6 +18,7 @@ data class Student(
     var guardianEmail: String,
     var guardianMobileNo: String,
     var grade: Grade, var dateOfBirth: LocalDateTime,
-    var gender: Gender
+    var gender: Gender,
+    var imageLink: String = "https://elipsett.xtgem.com/images/albums/Divide_cover.png"
 )
 

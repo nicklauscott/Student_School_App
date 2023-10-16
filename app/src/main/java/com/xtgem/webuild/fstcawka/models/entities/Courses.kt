@@ -10,6 +10,7 @@ data class Courses(
     val title: String,
     val readAmount: Int,
     val likedAmount: Int,
+    val dislikeAmount: Int,
     val content: String,
     val imageLink: String
 )

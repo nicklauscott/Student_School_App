@@ -26,10 +26,14 @@ import com.xtgem.webuild.fstcawka.models.enums.Screens
 import com.xtgem.webuild.fstcawka.models.enums.Semesters
 import com.xtgem.webuild.fstcawka.models.enums.Subjects
 import com.xtgem.webuild.fstcawka.page.navigation.Navigation
+import com.xtgem.webuild.fstcawka.page.screen.CourseDetailScreen
+import com.xtgem.webuild.fstcawka.page.screen.CourseListScreen
 import com.xtgem.webuild.fstcawka.page.screen.HomeScreen
 import com.xtgem.webuild.fstcawka.page.screen.LoginScreen
+import com.xtgem.webuild.fstcawka.page.screen.NewsLetterDetailScreen
 import com.xtgem.webuild.fstcawka.page.screen.NewsLetterScreen
 import com.xtgem.webuild.fstcawka.page.screen.ProfileScreen
+import com.xtgem.webuild.fstcawka.page.screen.SplashScreen
 import com.xtgem.webuild.fstcawka.ui.theme.FSTCAWKATheme
 import com.xtgem.webuild.fstcawka.ui.theme.custom.Theme
 import kotlinx.coroutines.GlobalScope
@@ -50,16 +54,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             Theme {
-                //Navigation()
+                Navigation()
+                //ProfileScreen(userId = "")
 
-                NewsLetterScreen()
-
-//                when (data) {
-//                    Screens.Login -> LoginScreen()
-//                    Screens.Home -> HomeScreen()
-//                    Screens.NewsLetter -> NewsLetterScreen()
-//                    Screens.Profile -> ProfileScreen()
-//                }
             }
         }
     }

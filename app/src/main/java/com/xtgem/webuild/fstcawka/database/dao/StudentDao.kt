@@ -1,5 +1,6 @@
 package com.xtgem.webuild.fstcawka.database.dao
 
+import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -69,16 +70,23 @@ interface StudentDao {
     @Query("SELECT * FROM student")
     fun getAllStudent(): List<Student>
 
+
     @Query("SELECT * FROM student WHERE studentId = :studentId")
-    suspend fun getStudent(studentId: UUID): Student
+    fun getStudent(studentId: UUID): LiveData<Student>
+
+    @Query("SELECT * FROM student WHERE studentId = :studentId OR regId =:regId")
+    fun getStudentByRegNo(studentId: UUID, regId: String): LiveData<Student>
+
+    @Query("SELECT * FROM student WHERE studentId = :studentId OR regId =:regId")
+    fun getStudentByRegNoNoLiveData(studentId: UUID, regId: String): Student?
 
     @Transaction
     @Query("SELECT * FROM subject WHERE studentId = :studentId")
-    suspend fun getSubjectAndSemester(studentId: UUID): List<AllSubjectAndSAllSemesters>
+    fun getSubjectAndSemester(studentId: UUID): LiveData<List<AllSubjectAndSAllSemesters>>
 
     @Transaction
     @Query("SELECT * FROM subject WHERE studentId = :studentId AND subjects =:subject")
-    suspend fun getOneSubjectAndItsSemester(studentId: UUID, subject: Subjects): List<ASubjectAndItsSemesters>
+    fun getOneSubjectAndItsSemester(studentId: UUID, subject: Subjects): LiveData<List<ASubjectAndItsSemesters>>
 
     @Transaction
     @Query("SELECT * FROM studentBills WHERE studentId = :studentId")
@@ -86,7 +94,7 @@ interface StudentDao {
 
     @Transaction
     @Query("SELECT * FROM studentBills WHERE studentId = :studentId AND bill =:bill")
-    suspend fun getOneBillAndItsPaymentList(studentId: UUID, bill: Bills): List<ABillAndItsPaymentList>
+    fun getOneBillAndItsPaymentList(studentId: UUID, bill: Bills): LiveData<List<ABillAndItsPaymentList>>
 
     @Transaction
     @Query("SELECT * FROM assignment")
@@ -98,7 +106,7 @@ interface StudentDao {
 
     @Transaction
     @Query("SELECT * FROM assignmentResult WHERE assignmentId = :assignmentId ORDER BY creationDate")
-    suspend fun getAssignmentContentAndResult(assignmentId: UUID): List<AssignmentContentAndResult>
+    fun getAssignmentContentAndResult(assignmentId: UUID): LiveData<List<AssignmentContentAndResult>>
 
 
 

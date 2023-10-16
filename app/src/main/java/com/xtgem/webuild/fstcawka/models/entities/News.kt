@@ -11,8 +11,9 @@ data class News(
     @PrimaryKey val newsId: UUID,
     val createdDate: LocalDateTime,
     val title: String,
-    val subtitle: String,
+    val description: String,
     val content: String,
+    val wideBanner: Boolean,
     val category: NewsCategory,
-    val imageLink: Int
+    val imageLink: String
 )

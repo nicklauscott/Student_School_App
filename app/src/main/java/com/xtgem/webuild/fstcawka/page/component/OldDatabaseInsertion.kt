@@ -86,15 +86,15 @@ fun OldDatabaseInsertion() {
                 val x = if (users.isNotEmpty()) users.first() else null
                 Log.d("testing", "2: ${x}")
 
-                if (x != null) {
-                    val sub = repository.getOneSubjectAndItsSemester(x.studentId, Subjects.Maths)
-                    Log.d("testing", "3: ${sub.size}")
-                    for (i in sub) {
-                        for (s in i.semester) {
-                            Log.d("testing", "$s")
-                        }
-                    }
-                }
+//                if (x != null) {
+//                    val sub = repository.getOneSubjectAndItsSemester(x.studentId, Subjects.Maths)
+//                    Log.d("testing", "3: ${sub}")
+//                    for (i in sub.value) {
+//                        for (s in i.semester) {
+//                            Log.d("testing", "$s")
+//                        }
+//                    }
+//                }
             }
 
 
