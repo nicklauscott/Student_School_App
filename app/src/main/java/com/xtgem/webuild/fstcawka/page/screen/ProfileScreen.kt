@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Logout
 import androidx.compose.material.icons.sharp.AccountCircle
 import androidx.compose.material.icons.twotone.AccountCircle
 import androidx.compose.material.icons.twotone.CalendarMonth
@@ -53,16 +54,21 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.get
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.gandiva.neumorphic.neu
+import com.xtgem.webuild.fstcawka.MainActivity
 import com.xtgem.webuild.fstcawka.misc.Uncategorized
 import com.xtgem.webuild.fstcawka.models.entities.DataResult
 import com.xtgem.webuild.fstcawka.models.entities.Student
 import com.xtgem.webuild.fstcawka.page.component.ErrorMessage
 import com.xtgem.webuild.fstcawka.page.component.ErrorPage
+import com.xtgem.webuild.fstcawka.page.component.InvalidSessionFrame
 import com.xtgem.webuild.fstcawka.page.component.LoadingData
 import com.xtgem.webuild.fstcawka.page.viewmodel.ProfileScreenViewModel
 import com.xtgem.webuild.fstcawka.page.viewmodel.ProfileScreenViewModelFactory
@@ -73,9 +79,10 @@ import com.xtgem.webuild.fstcawka.ui.theme.custom.defaultPressedNetAttrs
 import java.time.LocalDateTime
 
 @Composable
-fun ProfileScreen(userId: String, navController: NavController = rememberNavController()) {
+fun ProfileScreen(userId: String, sessionToken: String, navController: NavController = rememberNavController()) {
     val viewModel: ProfileScreenViewModel =
-        viewModel(factory = ProfileScreenViewModelFactory(userId))
+        viewModel(factory = ProfileScreenViewModelFactory(userId, sessionToken))
+
     val getStudent = remember { mutableStateOf(DataResult<Student>(isLoading = true)) }
     LaunchedEffect(Unit) {
         viewModel.student.observeForever { data ->
@@ -88,7 +95,6 @@ fun ProfileScreen(userId: String, navController: NavController = rememberNavCont
     }
 
     val context = LocalContext.current
-
     val displayMetrics = context.resources.displayMetrics
     val width = displayMetrics.widthPixels
     val height = displayMetrics.heightPixels
@@ -188,11 +194,37 @@ fun ProfileScreen(userId: String, navController: NavController = rememberNavCont
                             drawCircle(
                                 color = circleColor,
                                 center = if (width <= 720 && height <= 1440) Offset(350f, -500f)
-                                else if (width <= 1080 && height <= 2285) Offset(550f, -500f)  else Offset(750f, -500f),
+                                else if (width <= 1080 && height <= 2285) Offset(
+                                    550f,
+                                    -500f
+                                ) else Offset(750f, -500f),
                                 radius = if (width <= 720 && height <= 1440) 800f
                                 else if (width <= 1080 && height <= 2285) 1000f else 1200f
                             )
-                        }) {
+                        },
+                        verticalArrangement = Arrangement.Top,
+                        horizontalAlignment = Alignment.End) {
+                        Column(modifier = Modifier
+                            .size(80.dp)
+                            .padding(10.dp),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally) {
+                            Column(modifier = Modifier
+                                .size(80.dp)
+                                .padding(5.dp)
+                                .clickable {
+                                    val intent = MainActivity.getIntent(context)
+                                    context.startActivity(intent)
+                                    viewModel.logoutStudent()
+
+                                },
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally) {
+                                Icon(imageVector = Icons.Outlined.Logout, contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
+                                    modifier = Modifier.size(30.dp))
+                            }
+                        }
                     }
                     Column(
                         modifier = Modifier
@@ -213,6 +245,10 @@ fun ProfileScreen(userId: String, navController: NavController = rememberNavCont
 
                                 getStudent.value.error != null -> {
                                     ErrorPage("News")
+                                }
+
+                                getStudent.value.sessionInvalid == false -> {
+                                    InvalidSessionFrame()
                                 }
 
                                 else -> {
@@ -261,6 +297,10 @@ fun ProfileScreen(userId: String, navController: NavController = rememberNavCont
 
                         getStudent.value.error != null -> {
                             ErrorPage("News")
+                        }
+
+                        getStudent.value.sessionInvalid == false -> {
+                            InvalidSessionFrame()
                         }
 
                         else -> {

@@ -1,13 +1,16 @@
 package com.xtgem.webuild.fstcawka.misc
 
+import android.provider.ContactsContract.Data
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
 import com.xtgem.webuild.fstcawka.database.FSTCAwkaDatabase
+import com.xtgem.webuild.fstcawka.models.constants.Session
 import com.xtgem.webuild.fstcawka.models.entities.Courses
 import com.xtgem.webuild.fstcawka.models.entities.DataResult
 import com.xtgem.webuild.fstcawka.models.entities.News
 import com.xtgem.webuild.fstcawka.models.entities.Student
+import com.xtgem.webuild.fstcawka.models.entities.UserSession
 import com.xtgem.webuild.fstcawka.models.enums.Bills
 import com.xtgem.webuild.fstcawka.models.enums.Gender
 import com.xtgem.webuild.fstcawka.models.enums.Grade
@@ -22,8 +25,15 @@ import com.xtgem.webuild.fstcawka.models.temp.TemporalNews
 import com.xtgem.webuild.fstcawka.models.temp.news
 import com.xtgem.webuild.fstcawka.models.temp.newsPoster
 import com.xtgem.webuild.fstcawka.models.temp.wideBannerPoster
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import okhttp3.internal.wait
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -121,7 +131,7 @@ abstract class BaseRepository {
         return course
     }
 
-    fun getStudent(studentId: UUID): LiveData<DataResult<Student>>{
+    fun getStudent(studentId: UUID, session: UserSession?): LiveData<DataResult<Student>>{
         val student = MediatorLiveData<DataResult<Student>>()
         student.value = DataResult(isLoading = true)
         val getStudent = database.studentDao().getStudent(studentId)
@@ -144,7 +154,7 @@ abstract class BaseRepository {
 
 
 
-    fun addNews() {
+    private fun addNews() {
         val allNews = mutableListOf<News>()
         for (i in news) {
             val wideBanner = (0..5).random() == 3
@@ -158,9 +168,7 @@ abstract class BaseRepository {
             )
             allNews.add(news)
         }
-        GlobalScope.launch {
-            allNews.forEach { database.otherDao().insertNews(it) }
-        }
+        allNews.forEach { database.otherDao().insertNews(it) }
     }
 
     // ae4c602d-a7aa-47af-a018-30ec6a5c67ca
@@ -180,10 +188,12 @@ abstract class BaseRepository {
             Courses(UUID.randomUUID(), "European History", 67, 15, 1, "", newsPoster[5]),
         )
 
-        GlobalScope.launch {
+        val scope = CoroutineScope(Dispatchers.Default)
+        scope.launch {
             database.studentDao().insertStudent(student)
             if (course) courses.forEach { database.otherDao().insertCourse(it) }
             if (news) addNews()
+            scope.cancel()
         }
     }
 

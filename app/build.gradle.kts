@@ -106,4 +106,10 @@ dependencies {
     // BCrypt password algorithm
     implementation("org.mindrot:jbcrypt:0.4")
 
+    // Styleable Toast
+    implementation("io.github.muddz:styleabletoast:2.4.0")
+
+    // DataStore Shared Preference
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
+
 }

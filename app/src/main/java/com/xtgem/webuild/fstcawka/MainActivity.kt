@@ -71,5 +71,11 @@ class MainActivity : ComponentActivity() {
             intent.putExtra(ARG_ID, id.toString())
             return intent
         }
+
+        fun getIntent(context: Context): Intent {
+            val intent = Intent(context, MainActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
+            return intent
+        }
     }
 }

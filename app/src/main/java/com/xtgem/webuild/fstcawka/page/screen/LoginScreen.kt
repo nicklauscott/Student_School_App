@@ -127,7 +127,10 @@ fun LoginScreen(navController: NavController = rememberNavController()) {
     }
 
     if (loginStatus.value.status == true) {
-        navController.navigate(Screens.Home.withArg(loginStatus.value.userId!!))
+        navController.navigate(Screens.Home.withArg(
+            viewModel.getSessionDetail().sessionToken.toString(),
+            viewModel.getSessionDetail().studentID.toString()
+        ))
     }
 
     Surface(

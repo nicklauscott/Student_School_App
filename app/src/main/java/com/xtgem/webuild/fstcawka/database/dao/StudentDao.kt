@@ -14,6 +14,7 @@ import com.xtgem.webuild.fstcawka.models.entities.Semester
 import com.xtgem.webuild.fstcawka.models.entities.Student
 import com.xtgem.webuild.fstcawka.models.entities.StudentBills
 import com.xtgem.webuild.fstcawka.models.entities.Subject
+import com.xtgem.webuild.fstcawka.models.entities.UserSession
 import com.xtgem.webuild.fstcawka.models.enums.Bills
 import com.xtgem.webuild.fstcawka.models.enums.Subjects
 import com.xtgem.webuild.fstcawka.models.relations.ABillAndItsPaymentList
@@ -46,6 +47,9 @@ interface StudentDao {
     @Query("DELETE FROM assignmentContent")
     fun clearAssignmentContent()
 
+    @Query("DELETE FROM userSession")
+    fun clearUserSessions()
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertStudent(student: Student)
 
@@ -67,6 +71,9 @@ interface StudentDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAssignmentContent(assignmentContent: AssignmentContent)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertUserSession(userSession: UserSession)
+
     @Query("SELECT * FROM student")
     fun getAllStudent(): List<Student>
 
@@ -74,11 +81,17 @@ interface StudentDao {
     @Query("SELECT * FROM student WHERE studentId = :studentId")
     fun getStudent(studentId: UUID): LiveData<Student>
 
+    @Query("SELECT * FROM student WHERE studentId = :studentId")
+    fun getStudentNoLiveData(studentId: UUID): Student
+
     @Query("SELECT * FROM student WHERE studentId = :studentId OR regId =:regId")
     fun getStudentByRegNo(studentId: UUID, regId: String): LiveData<Student>
 
     @Query("SELECT * FROM student WHERE studentId = :studentId OR regId =:regId")
     fun getStudentByRegNoNoLiveData(studentId: UUID, regId: String): Student?
+
+    @Query("SELECT * FROM userSession WHERE sessionToken = :sessionToken")
+    fun getUserSession(sessionToken: UUID): UserSession?
 
     @Transaction
     @Query("SELECT * FROM subject WHERE studentId = :studentId")

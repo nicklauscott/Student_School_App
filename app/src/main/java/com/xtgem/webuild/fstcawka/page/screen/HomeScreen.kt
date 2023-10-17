@@ -83,7 +83,7 @@ fun PreviewHomeScreen() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController = rememberNavController(),
-               id: String = "") {
+               id: String = "", sessionToken: String = "") {
     val context = LocalContext.current
 
     Scaffold(modifier = Modifier
@@ -97,7 +97,7 @@ fun HomeScreen(navController: NavController = rememberNavController(),
                 },
                 onProfileClick = {
                     // go to profile screen
-                    navController.navigate(Screens.Profile.withArg(id))
+                    navController.navigate(Screens.Profile.withArg(id, sessionToken))
             })
         }
         ) {

@@ -33,17 +33,27 @@ fun Navigation() {
 
         // Home
         composable(
-            route = Screens.Home.route + "/{userId}",
+            route = Screens.Home.route + "/{userId}/{tokenId}",
             arguments = listOf(
                 navArgument("userId") {
+                    type = NavType.StringType
+                    defaultValue = UUID.randomUUID().toString()
+                    nullable = true
+                },
+                navArgument("tokenId") {
                     type = NavType.StringType
                     defaultValue = UUID.randomUUID().toString()
                     nullable = true
                 }
             )
         ) { entry ->
-            entry.arguments?.getString("userId")?.let { HomeScreen(id = it,
-                navController = navController) }
+            val sessionToken = entry.arguments?.getString("tokenId")
+            entry.arguments?.getString("userId")?.let {
+                if (sessionToken != null) {
+                    HomeScreen(id = it, sessionToken = sessionToken,
+                        navController = navController)
+                }
+            }
         }
 
         // News Letter
@@ -108,89 +118,30 @@ fun Navigation() {
 
         // Profile
         composable(
-            route = Screens.Profile.route + "/{userId}",
+            route = Screens.Profile.route + "/{userId}/{tokenId}",
             arguments = listOf(
                 navArgument("userId") {
                     type = NavType.StringType
                     defaultValue = UUID.randomUUID().toString()
                     nullable = true
-                }
-            )
-        ) { entry ->
-            entry.arguments?.getString("userId")?.let { ProfileScreen(userId = it,
-                navController = navController) }
-        }
-
-    }
-}
-
-
-@Composable
-fun Navigation2() {
-    val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = Screens.Login.route) {
-        // Login
-        composable(route = Screens.Login.route) {
-            LoginScreen(navController)
-        }
-
-        // Home
-        composable(
-            route = Screens.Home.route + "/{userId}",
-            arguments = listOf(
-                navArgument("userId") {
+                },
+                navArgument("tokenId") {
                     type = NavType.StringType
                     defaultValue = UUID.randomUUID().toString()
                     nullable = true
                 }
             )
         ) { entry ->
-            entry.arguments?.getString("userId")?.let { HomeScreen(id = it,
-                navController = navController) }
+            val sessionToken = entry.arguments?.getString("tokenId")
+            entry.arguments?.getString("userId")?.let {
+                if (sessionToken != null) {
+                    ProfileScreen(userId = it, sessionToken = sessionToken,
+                        navController = navController)
+                }
+            }
         }
 
-        // News Letter
-        composable(
-            route = Screens.NewsLetter.route,
-            arguments = listOf(
-                navArgument("userId") {
-                    type = NavType.StringType
-                    defaultValue = UUID.randomUUID().toString()
-                    nullable = true
-                }
-            )
-        ) { entry ->
-            entry.arguments?.getString("userId")?.let { NewsLetterScreen(navController = navController) }
-        }
 
-        // News Detail
-        composable(
-            route = Screens.NewsLetterDetail.route + "/{newsId}",
-            arguments = listOf(
-                navArgument("newsId") {
-                    type = NavType.StringType
-                    defaultValue = UUID.randomUUID().toString()
-                    nullable = true
-                }
-            )
-        ) { entry ->
-            entry.arguments?.getString("newsId")?.let { NewsLetterDetailScreen(newsId = it) }
-        }
-
-        // Profile
-        composable(
-            route = Screens.Profile.route + "/{userId}",
-            arguments = listOf(
-                navArgument("userId") {
-                    type = NavType.StringType
-                    defaultValue = UUID.randomUUID().toString()
-                    nullable = true
-                }
-            )
-        ) { entry ->
-            entry.arguments?.getString("userId")?.let { ProfileScreen(userId = it,
-                navController = navController) }
-        }
 
     }
 }

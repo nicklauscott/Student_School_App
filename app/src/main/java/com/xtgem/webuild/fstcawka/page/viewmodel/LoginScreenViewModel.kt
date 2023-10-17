@@ -7,13 +7,17 @@ import com.xtgem.webuild.fstcawka.Repository
 import com.xtgem.webuild.fstcawka.misc.Uncategorized
 import com.xtgem.webuild.fstcawka.models.constants.CustomLiveData
 import com.xtgem.webuild.fstcawka.models.constants.LoginStatus
+import com.xtgem.webuild.fstcawka.models.constants.PreferenceRepository
+import com.xtgem.webuild.fstcawka.models.constants.Session
 import com.xtgem.webuild.fstcawka.models.constants.State
 import com.xtgem.webuild.fstcawka.models.entities.Student
+import com.xtgem.webuild.fstcawka.models.entities.UserSession
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 import java.util.UUID
 
 
@@ -23,66 +27,31 @@ class LoginScreenViewModel: ViewModel() {
 
     val status = CustomLiveData<LoginStatus>()
 
+    private  var _newSession = Session(UUID.randomUUID(), UUID.randomUUID())
+    fun getSessionDetail() = Session(
+        sessionToken = _newSession.sessionToken,
+        studentID = _newSession.studentID
+    )
 
-    fun verifyStudent2(regLogin: Boolean, regId: String, studentId: String, textPassword: String) {
-        status.updateValue(LoginStatus(checking = true))
-        viewModelScope.launch {
-            delay(500L)
-            if (regLogin) {
-                val student = repository.getAllStudentByRegNO(studentId = UUID.randomUUID(), regId = regId)
-                if (student.value?.data == null) {
-                    status
-                        .updateValue(LoginStatus(checking = false, status = false, reason = State.REG))
-
-                }else {
-                    Log.d("profilerings", "${student.value?.data}")
-                    val checkPassword = Uncategorized.verifyPassword(textPassword, student.value!!.data!!.password)
-                    if (!checkPassword) {
-                        status
-                            .updateValue(LoginStatus(checking = false, status = false, reason = State.Password))
-
-                    }else {
-                        status
-                            .updateValue(LoginStatus(checking = false, status = true, reason = null))
-
-                    }
-                }
-            }else {
-                var studentUUID = UUID.randomUUID()
-                try {
-                    studentUUID = UUID.fromString(studentId)
-                }catch (_: Exception) {
-                    status
-                        .updateValue(LoginStatus(checking = false, status = false, reason = State.ID))
-
-                }
-                val student = repository.getAllStudentByRegNO(studentId = studentUUID, regId = "")
-                if (student.value?.data == null) {
-                    status
-                        .updateValue(LoginStatus(checking = false, status = false, reason = State.ID))
-
-                }else {
-                    val checkPassword = Uncategorized.verifyPassword(textPassword, student.value!!.data!!.password)
-                    if (!checkPassword) {
-                        status
-                            .updateValue(LoginStatus(checking = false, status = false, reason = State.Password))
-
-                    }else {
-                        status
-                            .updateValue(LoginStatus(checking = false, status = true, reason = null))
-
-                    }
-                }
-            }
+    private fun saveLoginData(userSession: UserSession, regLogin: Boolean, regId: String,
+                              studentId: UUID, password: String, sessionToken: UUID) {
+        val scope = CoroutineScope(Dispatchers.Default)
+        scope.launch {
+            val preferenceRepository = PreferenceRepository.getInstance()
+            repository.database.studentDao().insertUserSession(userSession)
+            preferenceRepository.setStudentLoginDetails(
+                regLogin = regLogin, regId = regId.trim().toInt(), studentId = studentId.toString(),
+                password = password, sessionToken = sessionToken
+            )
+            scope.cancel()
         }
-
     }
 
     fun verifyStudent(regLogin: Boolean, regId: String, studentId: String, textPassword: String) {
         status.updateValue(LoginStatus(checking = true))
         val scope = CoroutineScope(Dispatchers.IO)
         var student: Student? = null
-            scope.launch {
+        scope.launch {
             if (regLogin) {
                 student = repository.database.studentDao().getStudentByRegNoNoLiveData(UUID.randomUUID(), regId)
             }
@@ -104,8 +73,22 @@ class LoginScreenViewModel: ViewModel() {
                         status.updateValue(LoginStatus(checking = false, status = false, reason = State.ID))
                 }else {
                     val isPassword = Uncategorized.verifyPassword(textPassword, student!!.password)
-                    if (isPassword) status.updateValue(LoginStatus(checking = true, status = true, userId = student!!.studentId.toString()))
-                    else status.updateValue(LoginStatus(checking = false, status = false, reason = State.Password))
+                    if (isPassword) {
+                        val generateSessionId = UUID.randomUUID()
+                        val userSession = UserSession(
+                            id = UUID.randomUUID(),
+                            sessionToken = generateSessionId,
+                            studentID = student!!.studentId,
+                            active = true,
+                            creationDate = LocalDateTime.now()
+                        )
+                        saveLoginData(userSession, regLogin, regId, student!!.studentId, textPassword, generateSessionId)
+                        _newSession = Session(sessionToken = generateSessionId, studentID = student!!.studentId)
+                        status.updateValue(LoginStatus(checking = true, status = true, userId = student!!.studentId.toString()))
+                    }
+                    else {
+                        status.updateValue(LoginStatus(checking = false, status = false, reason = State.Password))
+                    }
                 }
         }
 
