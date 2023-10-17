@@ -1,5 +1,6 @@
 package com.xtgem.webuild.fstcawka.page.screen
 
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ScrollState
@@ -110,7 +111,7 @@ fun NewsLetterDetailScreen(newsId: String) {
                             verticalArrangement = Arrangement.Bottom) {
                             Column(modifier = Modifier
                                 .fillMaxWidth()
-                                .height(if (columHeight.value <= 30.dp) 30.dp else columHeight.value)
+                                .height(if (columHeight.value <= 100.dp) 100.dp else columHeight.value)   /////
                                 .clip(
                                     if (columHeight.value > 830.dp) RoundedCornerShape(
                                         topStart = 0.dp,
@@ -125,8 +126,8 @@ fun NewsLetterDetailScreen(newsId: String) {
                                     .fillMaxWidth(),
                                     horizontalAlignment = Alignment.CenterHorizontally) {
                                     Divider(modifier = Modifier
-                                        .height(3.dp)
-                                        .width(85.dp)
+                                        .height(3.5.dp)
+                                        .width(100.dp)
                                         .clip(RoundedCornerShape(CornerSize(4.dp)))
                                         .pointerInput(Unit) {
                                             detectDragGestures { _, dragAmount ->
@@ -142,7 +143,8 @@ fun NewsLetterDetailScreen(newsId: String) {
                                 NewsDetailHeader(news = data, isScrolling = scrollState, columHeight.value)
                                 Divider(modifier = Modifier
                                     .animateContentSize(animationSpec = tween(durationMillis = 250))
-                                    .height(if (scrollState.value > 0 && columHeight.value <= 735.dp) 0.dp else 0.5.dp),
+                                    .height(if (scrollState.value > 0
+                                        && columHeight.value <= 735.dp && columHeight.value >= 100.dp) 0.dp else 0.5.dp),
                                     color = MaterialTheme.colorScheme.onBackground)
                                 Column(modifier = Modifier
                                     .fillMaxWidth()
@@ -189,7 +191,9 @@ fun NewsLetterDetailScreen(newsId: String) {
 
 @Composable
 fun NewsDetailHeader(news: News, isScrolling: ScrollState, columnHeight: Dp) {
-    fun dynamicHeight() = if (isScrolling.value > 0 && columnHeight <= 735.dp)
+    Log.d("NewsDetailHeader", "columnHeight: $columnHeight")
+    fun dynamicHeight() = if (isScrolling.value > 0 && columnHeight <= 735.dp
+        && columnHeight >= 100.dp)
         Modifier.height(0.dp) else Modifier.heightIn()
     Column(modifier = dynamicHeight()
         .padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
