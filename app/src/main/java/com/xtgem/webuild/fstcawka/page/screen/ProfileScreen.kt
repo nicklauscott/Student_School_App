@@ -162,6 +162,15 @@ fun ProfileScreen(userId: String, sessionToken: String, navController: NavContro
         UpdateDateDialog(student = student, context = context, updateDate)
     }
 
+    val viewFullImage = remember {
+        mutableStateOf(false)
+    }
+    if (viewFullImage.value) {
+        ViewProfileImageDialog(imageLink = student.value!!.imageLink) {
+            viewFullImage.value = false
+        }
+    }
+
 
 
     Surface(
@@ -257,6 +266,7 @@ fun ProfileScreen(userId: String, sessionToken: String, navController: NavContro
                                                 modifier = Modifier
                                                     .fillMaxSize()
                                                     .clip(CircleShape)
+                                                    .clickable { viewFullImage.value = true }
                                             )
                                         }
                                     } else {
@@ -388,6 +398,13 @@ fun ProfileScreen(userId: String, sessionToken: String, navController: NavContro
         }
     }
 
+
+@Composable
+fun ViewProfileImageDialog(imageLink: String, onDismiss: () -> Unit) {
+    Dialog(onDismissRequest = { onDismiss() }) {
+        AsyncImage(model = imageLink, contentDescription = null, modifier = Modifier.size(500.dp))
+    }
+}
 
 @Composable
 fun ProfileCell(icon: ImageVector = Icons.Sharp.AccountCircle,

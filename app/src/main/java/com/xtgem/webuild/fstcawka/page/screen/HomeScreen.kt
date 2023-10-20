@@ -34,6 +34,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -54,15 +55,20 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.gandiva.neumorphic.neu
 import com.gandiva.neumorphic.shape.RoundedCorner
 import com.xtgem.webuild.fstcawka.R
+import com.xtgem.webuild.fstcawka.models.entities.DataResult
+import com.xtgem.webuild.fstcawka.models.entities.Student
 import com.xtgem.webuild.fstcawka.models.enums.Screens
 import com.xtgem.webuild.fstcawka.models.enums.Semesters
 import com.xtgem.webuild.fstcawka.models.enums.Subjects
 import com.xtgem.webuild.fstcawka.page.component.NavFooter
+import com.xtgem.webuild.fstcawka.page.viewmodel.HomeScreenViewModel
+import com.xtgem.webuild.fstcawka.page.viewmodel.HomeScreenViewModelFactory
 import com.xtgem.webuild.fstcawka.page.widget.CustomButton1
 import com.xtgem.webuild.fstcawka.ui.theme.custom.MyFonts
 import com.xtgem.webuild.fstcawka.ui.theme.custom.Theme
@@ -81,7 +87,17 @@ fun PreviewHomeScreen() {
 @Composable
 fun HomeScreen(navController: NavController = rememberNavController(),
                userId: String = "", sessionToken: String = "") {
+    val viewModel: HomeScreenViewModel = viewModel(factory = HomeScreenViewModelFactory(userId, sessionToken))
+    val student = remember { mutableStateOf(DataResult<Student>(isLoading = true)) }
+    val greeting = remember { mutableStateOf(DataResult<String>(isLoading = true)) }
+    LaunchedEffect(Unit) {
+        viewModel.student.observeForever { student.value = it }
+        viewModel.greeting.observeForever { greeting.value = it }
+    }
     val context = LocalContext.current
+    val displayMetrics = context.resources.displayMetrics
+    val width = displayMetrics.widthPixels
+    val height = displayMetrics.heightPixels
 
     Scaffold(modifier = Modifier
         .fillMaxSize()
@@ -105,7 +121,8 @@ fun HomeScreen(navController: NavController = rememberNavController(),
             .fillMaxHeight()
             .background(color = MaterialTheme.colorScheme.background)) {
             Column {
-                Header()
+                student.value.data?.let { it1 -> Header(student = it1, greeting = greeting.value.data,
+                    width = width, height = height) }
                 Column(modifier = Modifier
                     .fillMaxWidth()
                     .background(color = MaterialTheme.colorScheme.background)) {
@@ -434,7 +451,8 @@ fun Cell(
 }
 
 @Composable
-fun Header() {
+fun Header(student: Student, greeting: String?,
+           width: Int, height: Int) {
     val circleColor =  MaterialTheme.colorScheme.primary
     Row(modifier = Modifier
         .fillMaxWidth()
@@ -444,14 +462,26 @@ fun Header() {
             .weight(0.7f)
             .padding(top = 40.dp, start = 16.dp)
             .drawBehind {
+                // width: 720 => height: 1440
+                //width: 1080 => height: 2285
+                /*
+
+                if (width <= 720 && height <= 1440) Offset(350f, -500f)
+                                else if (width <= 1080 && height <= 2285) Offset(
+                                    550f,
+                                    -500f
+                                ) else Offset(750f, -500f),
+                 */
                 drawCircle(
                     color = circleColor,
-                    center = Offset(40f, 20f),
-                    radius = 210f
+                    center = if (width <= 720 && height <= 1440) Offset(40f, 20f)
+                    else if (width <= 1080 && height <= 2285) Offset(60f, 20f) else  Offset(80f, 20f),
+                    radius = if (width <= 720 && height <= 1440) 210f else if (width <= 1080 && height <= 2285) 310f
+                    else 410f
                 )
             }
         ) {
-            Text(text = "Good Evening Mark",
+            Text(text = "$greeting ${student.firstName}",
                 color = MaterialTheme.colorScheme.onBackground,
                 style = TextStyle(fontWeight = FontWeight.Bold,
                     fontSize = 25.sp, fontFamily = MyFonts.customFontFamily[0])
@@ -471,14 +501,14 @@ fun Header() {
                         fontWeight = FontWeight.Light,
                         fontSize = 16.sp, fontFamily = MyFonts.customFontFamily[3]
                     )) {
-                        append("REG NO: ")
+                        append("REG NO:   ")
                     }
                     withStyle(style = SpanStyle(
-                        color = MaterialTheme.colorScheme.onBackground,
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Light,
                         fontSize = 16.sp, fontFamily = MyFonts.customFontFamily[3]
                     )) {
-                        append("00167221")
+                        append(student.regId)
                     }
                 }
                 
@@ -491,8 +521,10 @@ fun Header() {
             .drawBehind {
                 drawCircle(
                     color = circleColor,
-                    center = Offset(140f, 55f),
-                    radius = 150f
+                    center = if (width <= 720 && height <= 1440) Offset(140f, 55f)
+                    else if (width <= 1080 && height <= 2285) Offset(190f, 75f) else Offset(240f, 95f),
+                    radius = if (width <= 720 && height <= 1440) 150f
+                    else if (width <= 1080 && height <= 2285) 230f else 300f
                 )
             }
             .padding(start = 35.dp, top = 16.dp)) {

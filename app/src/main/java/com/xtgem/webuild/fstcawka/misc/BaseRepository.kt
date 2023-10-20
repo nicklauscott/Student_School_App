@@ -175,14 +175,16 @@ abstract class BaseRepository {
     }
 
 
-    fun getStudent(studentId: UUID, session: UserSession?): LiveData<DataResult<Student>>{
-        val student = MediatorLiveData<DataResult<Student>>()
-        student.value = DataResult(isLoading = true)
-        val getStudent = database.studentDao().getStudent(studentId)
-        student.addSource(getStudent) { data ->
-            student.value = DataResult(data = data, isLoading = false)
+    suspend  fun getStudent(studentId: UUID, sessionToken: UUID): Student?{
+        val scope = CoroutineScope(Dispatchers.Default)
+        val session = scope.async { getSession(sessionToken) }.await()
+        return if (session != null && session.sessionValidity()) {
+            scope.cancel()
+            database.studentDao().getStudentNoLiveData(studentId)
+        }else {
+            scope.cancel()
+            null
         }
-        return student
     }
 
 
@@ -316,24 +318,3 @@ abstract class BaseRepository {
     }
 
 }
-
-
-
-
-/*
-
-val currentStudentsQuiz  = mutableListOf<StudentAssignmentResult>()
-                    val newAssignments = generateAssignments()
-                    for (singleAssignment in newAssignments) {
-                        if (singleAssignment.grade == grade) {
-                            val assignmentResult = StudentAssignmentResult(
-                                UUID.randomUUID(), singleAssignment.assignmentId, i.id, 0,
-                                singleAssignment.subject, singleAssignment.assignment.size, mapOf(0 to null, 1 to null, 2 to null)
-                            )
-                            currentStudentsQuiz.add(assignmentResult)
-                        }
-                    }
-                    currentStudentsQuiz.forEach { insertAssignmentResult(it) }
-
-
- */
