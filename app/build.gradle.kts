@@ -2,7 +2,6 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.devtools.ksp")
-
 }
 
 android {
@@ -82,7 +81,11 @@ dependencies {
     implementation ("androidx.room:room-ktx:$roomVersion")
 
     // Compose ViewModel
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0-alpha02")
+    // Lifecycle utilities for Compose
+    implementation("androidx.activity:activity-ktx:1.8.0")
+
+
     // lifecycle livedata
     implementation("androidx.compose.runtime:runtime-livedata:1.5.3")
 

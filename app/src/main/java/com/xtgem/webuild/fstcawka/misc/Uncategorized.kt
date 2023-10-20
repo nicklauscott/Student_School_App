@@ -21,22 +21,17 @@ import java.util.concurrent.ThreadLocalRandom
 
 class Uncategorized {
 
-    private val storageRepository = Repository.get()
-
     val nairaSign = "₦"
 
     private val mapOfNews = mutableMapOf<Int, List<String>>()
 
-    private var firstNames = mutableListOf("Harper", "Carter", "Hudson", "Parker", "Willow", "Cooper", "Waylon", "Easton",
-        "Landon", "Sawyer", "Colton", "Hunter", "Wesley", "Weston", "Jaxson", "Audrey",
-        "Hayden", "Hailey", "Walker", "Ashton", "Hadley", "Graham", "Oakley", "Tucker", "John",
-        "Jane", "Mary", "Bob", "Alice", "Tom", "Emily", "Alex", "Sara", "David")
+    val emailDomains = mutableListOf(
+        "gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "aol.com", "icloud.com",
+        "mail.com", "protonmail.com", "yandex.com", "zoho.com", "gmx.com", "rediffmail.com",
+        "mail.ru", "outlook.in", "live.com", "comcast.net", "qq.com", "sina.com", "163.com",
+        "lavabit.com"
+    )
 
-    private val lastNames =  mutableListOf("Taylor", "Davies", "Wilson", "Thomas", "Walker", "Watson", "Wright", "Harris",
-        "Cooper",  "Clarke", "Morgan", "Hughes", "Palmer", "Holmes", "Harvey",
-        "Graham", "Little", "Bailey", "Parker", "Jordan", "Fisher", "Elliot", "Carter",
-        "Gibson", "Murray", "Tucker", "Porter", "Hunter", "Gordon", "Holmes",
-        "Palmer", "Knight", "Hudson", "Pierce", "Arnold", "Wagner", "Willis",  "Snyder")
 
     private val messages = mutableListOf("Hello", "How are you?", "What's up?", "Nice to meet you", "What's new?", "How's your day going?", "Good morning", "Good afternoon", "Good evening")
 
@@ -53,33 +48,6 @@ class Uncategorized {
         mapOfNews[9] = listOf("The Impact of Physical Activity on Academic Achievement" , "Regular physical activity has been shown to improve academic performance, cognitive skills...")
         mapOfNews[10] = listOf("The Ethics of Artificial Intelligence in Education" , "Artificial intelligence (AI) is becoming increasingly prevalent in education, with applications...")
 
-    }
-
-    fun getAStudent(): List<String>{
-        val extraStudentDetails = mutableListOf<String>()
-        firstNames.shuffle()
-        lastNames.shuffle()
-        firstNames.first()
-        val pickLastName = lastNames.first()
-        extraStudentDetails.add(pickLastName)
-        extraStudentDetails.add(pickLastName)
-        extraStudentDetails.add("0")
-        extraStudentDetails.add("abc@email.com")
-        extraStudentDetails.add("080-324-00657")
-        extraStudentDetails.add("JSS!")
-        extraStudentDetails.add("30/08/2005")
-        return extraStudentDetails
-    }
-
-    fun getMessageAndSender(): List<String>{
-        val messageWthSender = mutableListOf<String>()
-        firstNames.shuffle()
-        messages.shuffle()
-        val pickedName = firstNames.first()
-        val pickedMessage = messages.first()
-        messageWthSender.add(pickedName)
-        messageWthSender.add(pickedMessage)
-        return messageWthSender
     }
 
     fun selectNews(number: Int): List<String>{

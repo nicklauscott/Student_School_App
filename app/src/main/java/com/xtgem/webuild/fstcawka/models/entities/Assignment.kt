@@ -20,7 +20,7 @@ data class Assignment(
     val subject: Subjects,
     val questionSize: Int,
     val totalScore: Int,
-    val grade: Grade,
+    val grades: List<Grade>,
 ) {
     companion object {
         fun createAssignment(
@@ -30,7 +30,7 @@ data class Assignment(
             dueDateTime: LocalDateTime,
             subject: Subjects,
             totalScore: Int,
-            grade: Grade,
+            grades: List<Grade>,
             questions: List<AssignmentContent>
         ): Assignment{
             val repository = Repository.get()
@@ -43,7 +43,7 @@ data class Assignment(
             }
             val assignment = Assignment(
                 assignmentID, title, description, dueDateTime, LocalDateTime.now(),
-                subject, questions.size, totalScore, grade)
+                subject, assignmentContent.size, totalScore, grades)
             scope.launch {
                 repository.database.studentDao().insertAssignment(assignment)
                 assignmentContent.forEach { repository.database.studentDao().insertAssignmentContent(it) }

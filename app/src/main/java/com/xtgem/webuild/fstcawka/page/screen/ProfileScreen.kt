@@ -54,15 +54,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.get
-import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.gandiva.neumorphic.neu
-import com.xtgem.webuild.fstcawka.MainActivity
 import com.xtgem.webuild.fstcawka.misc.Uncategorized
 import com.xtgem.webuild.fstcawka.models.entities.DataResult
 import com.xtgem.webuild.fstcawka.models.entities.Student
@@ -80,8 +75,9 @@ import java.time.LocalDateTime
 
 @Composable
 fun ProfileScreen(userId: String, sessionToken: String, navController: NavController = rememberNavController()) {
-    val viewModel: ProfileScreenViewModel =
-        viewModel(factory = ProfileScreenViewModelFactory(userId, sessionToken))
+    val viewModel: ProfileScreenViewModel = remember(userId, sessionToken) {
+        ProfileScreenViewModelFactory(userId, sessionToken)
+    }.create(ProfileScreenViewModel::class.java)
 
     val getStudent = remember { mutableStateOf(DataResult<Student>(isLoading = true)) }
     LaunchedEffect(Unit) {
@@ -211,17 +207,11 @@ fun ProfileScreen(userId: String, sessionToken: String, navController: NavContro
                             horizontalAlignment = Alignment.CenterHorizontally) {
                             Column(modifier = Modifier
                                 .size(80.dp)
-                                .padding(5.dp)
-                                .clickable {
-                                    val intent = MainActivity.getIntent(context)
-                                    context.startActivity(intent)
-                                    viewModel.logoutStudent()
-
-                                },
+                                .padding(5.dp),
                                 verticalArrangement = Arrangement.Center,
                                 horizontalAlignment = Alignment.CenterHorizontally) {
                                 Icon(imageVector = Icons.Outlined.Logout, contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f),
+                                    tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.0f),
                                     modifier = Modifier.size(30.dp))
                             }
                         }
@@ -707,9 +697,7 @@ fun UpdateEmailDialog(student: Student, context: Context,
                         interactionSource = interactEmail,
                         isFieldBlank = error.value,
                         onTextChange = {
-                            if (it.all { char ->
-                                    char.isLetter() || char.isDigit() || char == '@' || char == '.'
-                                }) email.value = it; error.value = false
+                            email.value = it; error.value = false
                         })
                 }
 
@@ -758,6 +746,7 @@ fun UpdateImageDialog(student: Student, context: Context,
     }
 
     val toast = Toast.makeText(context, "Invalid Image URL", Toast.LENGTH_SHORT)
+    Log.d("illScreenViewMos", student.imageLink)
 
     Dialog(onDismissRequest = { onDismiss(student) }) {
         Surface(modifier = Modifier
@@ -802,9 +791,7 @@ fun UpdateImageDialog(student: Student, context: Context,
                         interactionSource = interactImageLink,
                         isFieldBlank = error.value,
                         onTextChange = {
-                            if (it.all { char ->
-                                    char.isLetter() || char.isDigit() || char.isWhitespace()
-                                }) imageLink.value = it; error.value = false
+                            imageLink.value = it; error.value = false
                         })
                 }
 
@@ -1009,27 +996,33 @@ fun UpdatePasswordDialog(student: Student, context: Context,
 
 
 @Composable
-fun UpdateDateDialog(student: MutableState<Student?>, context: Context, updateDate: MutableState<Boolean>) {
+fun UpdateDateDialog(
+    student: MutableState<Student?>,
+    context: Context,
+    updateDate: MutableState<Boolean>
+) {
     val currentDate = LocalDateTime.now()
 
     var selectedDateOfBirth: LocalDateTime?
 
     // Create a date picker dialog with the current date as the default
-    val datePickerDialog = DatePickerDialog(
-        context,
-        { _, year, month, dayOfMonth ->
-            // Create a LocalDateTime object from the selected date
-            val selectedDate = LocalDateTime.of(year, month + 1, dayOfMonth, 0, 0)
-            selectedDateOfBirth = selectedDate
-            val oldBirthDate = student.value?.dateOfBirth ?: LocalDateTime.now()
-            student.value = student.value?.copy(dateOfBirth = selectedDateOfBirth ?: oldBirthDate)
-            updateDate.value = false
-        },
-        currentDate.year,
-        currentDate.monthValue - 1,
-        currentDate.dayOfMonth
-    )
+        val datePickerDialog = DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                // Create a LocalDateTime object from the selected date
+                val selectedDate = LocalDateTime.of(year, month + 1, dayOfMonth, 0, 0)
+                selectedDateOfBirth = selectedDate
+                val oldBirthDate = student.value?.dateOfBirth ?: LocalDateTime.now()
+                student.value = student.value?.copy(dateOfBirth = selectedDateOfBirth ?: oldBirthDate)
+                updateDate.value = false
 
-    // Show the date picker dialog
-    datePickerDialog.show()
+            },
+            currentDate.year,
+            currentDate.monthValue - 1,
+            currentDate.dayOfMonth
+        )
+
+        // Show the date picker dialog
+        datePickerDialog.show()
+        updateDate.value = false
 }

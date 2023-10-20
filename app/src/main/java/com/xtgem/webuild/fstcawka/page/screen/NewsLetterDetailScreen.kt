@@ -33,6 +33,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.SpanStyle
@@ -133,7 +134,9 @@ fun NewsLetterDetailScreen(newsId: String) {
                                             detectDragGestures { _, dragAmount ->
                                                 columHeight.value -= dragAmount.y.toDp()
                                                 blur.value += dragAmount.y.toDp()
-                                                textSize.floatValue += dragAmount.y / 40
+                                                if (columHeight.value >= 100.dp) {
+                                                    textSize.floatValue += dragAmount.y / 40
+                                                }
                                             }
                                         },
                                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f))

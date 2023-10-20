@@ -2,12 +2,10 @@ package com.xtgem.webuild.fstcawka.page.screen
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -49,39 +47,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
-import com.xtgem.webuild.fstcawka.R
 import com.xtgem.webuild.fstcawka.misc.Uncategorized
 import com.xtgem.webuild.fstcawka.models.entities.DataResult
 import com.xtgem.webuild.fstcawka.models.entities.News
 import com.xtgem.webuild.fstcawka.models.enums.NewsCategory
 import com.xtgem.webuild.fstcawka.models.enums.Screens
-import com.xtgem.webuild.fstcawka.models.enums.Subjects
 import com.xtgem.webuild.fstcawka.page.component.ErrorMessage
 import com.xtgem.webuild.fstcawka.page.component.NavFooter
 import com.xtgem.webuild.fstcawka.page.viewmodel.NewsLetterScreenViewModel
 import com.xtgem.webuild.fstcawka.ui.theme.custom.MyFonts
 import java.util.UUID
-
-@Preview
-@Composable
-fun NewsLetterScreenPreview() {
-    NewsLetterScreen()
-}
 
 
 val TOP_BAR_HEIGHT = 60.dp
@@ -93,7 +80,7 @@ val LazyGridState.isScrolling: Boolean
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun NewsLetterScreen(navController: NavController = rememberNavController()) {
+fun NewsLetterScreen(userId: String, sessionToken: String, navController: NavController = rememberNavController()) {
     val viewModel = viewModel<NewsLetterScreenViewModel>()
     val allNews = remember { mutableStateOf(DataResult<List<News>>(isLoading = true)) }
     LaunchedEffect(Unit) {
@@ -127,10 +114,10 @@ fun NewsLetterScreen(navController: NavController = rememberNavController()) {
                 )
             ) {
                 NavFooter(screen = Screens.NewsLetter, onHomeClick = {
-                    navController.navigate(Screens.Home.route)
+                    navController.popBackStack()
                 }) {
                     // Go to profile
-                    navController.navigate(Screens.Profile.route)
+                    navController.navigate(Screens.Profile.withArg(userId, sessionToken))
                 }
             }
         }

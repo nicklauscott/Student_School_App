@@ -1,13 +1,14 @@
 package com.xtgem.webuild.fstcawka.page.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.xtgem.webuild.fstcawka.models.enums.Screens
+import com.xtgem.webuild.fstcawka.page.screen.AssignmentDetail
+import com.xtgem.webuild.fstcawka.page.screen.AssignmentListScreen
 import com.xtgem.webuild.fstcawka.page.screen.CourseDetailScreen
 import com.xtgem.webuild.fstcawka.page.screen.CourseListScreen
 import com.xtgem.webuild.fstcawka.page.screen.HomeScreen
@@ -15,6 +16,7 @@ import com.xtgem.webuild.fstcawka.page.screen.LoginScreen
 import com.xtgem.webuild.fstcawka.page.screen.NewsLetterDetailScreen
 import com.xtgem.webuild.fstcawka.page.screen.NewsLetterScreen
 import com.xtgem.webuild.fstcawka.page.screen.ProfileScreen
+import com.xtgem.webuild.fstcawka.page.screen.SchoolBillScreen
 import com.xtgem.webuild.fstcawka.page.screen.SplashScreen
 import java.util.UUID
 
@@ -50,15 +52,35 @@ fun Navigation() {
             val sessionToken = entry.arguments?.getString("tokenId")
             entry.arguments?.getString("userId")?.let {
                 if (sessionToken != null) {
-                    HomeScreen(id = it, sessionToken = sessionToken,
+                    HomeScreen(userId = it, sessionToken = sessionToken,
                         navController = navController)
                 }
             }
         }
 
         // News Letter
-        composable(route = Screens.NewsLetter.route) {
-            NewsLetterScreen(navController = navController)
+        composable(
+            route = Screens.NewsLetter.route + "/{userId}/{tokenId}",
+            arguments = listOf(
+                navArgument("userId") {
+                    type = NavType.StringType
+                    defaultValue = UUID.randomUUID().toString()
+                    nullable = true
+                },
+                navArgument("tokenId") {
+                    type = NavType.StringType
+                    defaultValue = UUID.randomUUID().toString()
+                    nullable = true
+                }
+            )
+        ) { entry ->
+            val sessionToken = entry.arguments?.getString("tokenId")
+            entry.arguments?.getString("userId")?.let {
+                if (sessionToken != null) {
+                    NewsLetterScreen(userId = it, sessionToken = sessionToken,
+                        navController = navController)
+                }
+            }
         }
 
         // News Detail
@@ -141,6 +163,89 @@ fun Navigation() {
             }
         }
 
+
+        // Bill
+        composable(
+            route = Screens.Bill.route + "/{userId}/{tokenId}",
+            arguments = listOf(
+                navArgument("userId") {
+                    type = NavType.StringType
+                    defaultValue = UUID.randomUUID().toString()
+                    nullable = true
+                },
+                navArgument("tokenId") {
+                    type = NavType.StringType
+                    defaultValue = UUID.randomUUID().toString()
+                    nullable = true
+                }
+            )
+        ) { entry ->
+            val sessionToken = entry.arguments?.getString("tokenId")
+            entry.arguments?.getString("userId")?.let {
+                if (sessionToken != null) {
+                    SchoolBillScreen(userId = it, sessionToken = sessionToken)
+                }
+            }
+        }
+
+
+        // Assignment
+        composable(
+            route = Screens.Assignment.route + "/{userId}/{tokenId}",
+            arguments = listOf(
+                navArgument("userId") {
+                    type = NavType.StringType
+                    defaultValue = UUID.randomUUID().toString()
+                    nullable = true
+                },
+                navArgument("tokenId") {
+                    type = NavType.StringType
+                    defaultValue = UUID.randomUUID().toString()
+                    nullable = true
+                }
+            )
+        ) { entry ->
+            val sessionToken = entry.arguments?.getString("tokenId")
+            entry.arguments?.getString("userId")?.let {
+                if (sessionToken != null) {
+                    AssignmentListScreen(userId = it, sessionToken = sessionToken,
+                        navController = navController)
+                }
+            }
+        }
+
+        // Assignment Detail
+        composable(
+            route = Screens.AssignmentDetail.route + "/{userId}/{tokenId}/{assignmentId}",
+            arguments = listOf(
+                navArgument("userId") {
+                    type = NavType.StringType
+                    defaultValue = UUID.randomUUID().toString()
+                    nullable = true
+                },
+                navArgument("tokenId") {
+                    type = NavType.StringType
+                    defaultValue = UUID.randomUUID().toString()
+                    nullable = true
+                },
+                navArgument("assignmentId") {
+                    type = NavType.StringType
+                    defaultValue = UUID.randomUUID().toString()
+                    nullable = true
+                }
+            )
+        ) { entry ->
+            val sessionToken = entry.arguments?.getString("tokenId")
+            val assignmentId = entry.arguments?.getString("assignmentId")
+            entry.arguments?.getString("userId")?.let {
+                if (sessionToken != null) {
+                    if (assignmentId != null) {
+                        AssignmentDetail(userId = it, sessionToken = sessionToken,
+                            assignmentId = assignmentId)
+                    }
+                }
+            }
+        }
 
 
     }

@@ -1,7 +1,6 @@
 package com.xtgem.webuild.fstcawka.page.screen
 
 import android.content.Context
-import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -59,7 +58,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.gandiva.neumorphic.neu
 import com.gandiva.neumorphic.shape.RoundedCorner
-import com.xtgem.webuild.fstcawka.MainActivity
 import com.xtgem.webuild.fstcawka.R
 import com.xtgem.webuild.fstcawka.models.enums.Screens
 import com.xtgem.webuild.fstcawka.models.enums.Semesters
@@ -70,7 +68,6 @@ import com.xtgem.webuild.fstcawka.ui.theme.custom.MyFonts
 import com.xtgem.webuild.fstcawka.ui.theme.custom.Theme
 import com.xtgem.webuild.fstcawka.ui.theme.custom.defaultFlatNeuAttrs
 import com.xtgem.webuild.fstcawka.ui.theme.custom.defaultPressedNetAttrs
-import java.util.UUID
 
 @Preview
 @Composable
@@ -83,7 +80,7 @@ fun PreviewHomeScreen() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(navController: NavController = rememberNavController(),
-               id: String = "", sessionToken: String = "") {
+               userId: String = "", sessionToken: String = "") {
     val context = LocalContext.current
 
     Scaffold(modifier = Modifier
@@ -93,11 +90,11 @@ fun HomeScreen(navController: NavController = rememberNavController(),
             NavFooter(Screens.Home,
                 onNewsClick = {
                     // go to news screen
-                              navController.navigate(Screens.NewsLetter.route)
+                              navController.navigate(Screens.NewsLetter.withArg(userId, sessionToken))
                 },
                 onProfileClick = {
                     // go to profile screen
-                    navController.navigate(Screens.Profile.withArg(id, sessionToken))
+                    navController.navigate(Screens.Profile.withArg(userId, sessionToken))
             })
         }
         ) {
@@ -127,7 +124,7 @@ fun HomeScreen(navController: NavController = rememberNavController(),
                             label = "News Letter",
                             icon = newsLetterIcon
                         ) {
-                            Toast.makeText(context, "News Letter", Toast.LENGTH_SHORT).show()
+                            navController.navigate(Screens.NewsLetter.withArg(userId, sessionToken))
                         }
                     }) {
                         val newsLetterIcon = painterResource(id = R.drawable.ic_e_learning)
@@ -135,8 +132,7 @@ fun HomeScreen(navController: NavController = rememberNavController(),
                             label = "E-Learning",
                             icon = newsLetterIcon
                         ) {
-                            val uid = UUID.fromString("ae4c602d-a7aa-47af-a018-30ec6a5c67ca")
-                            navController.navigate(route = Screens.Course.withArg(uid.toString()))
+                            navController.navigate(route = Screens.Course.withArg(userId))
                         }
                     }
 
@@ -146,7 +142,7 @@ fun HomeScreen(navController: NavController = rememberNavController(),
                             label = "News",
                             icon = newsLetterIcon
                         ) {
-                            Toast.makeText(context, "News", Toast.LENGTH_SHORT).show()
+                            navController.navigate(Screens.NewsLetter.withArg(userId, sessionToken))
                         }
                     }) {
                         val newsLetterIcon = painterResource(id = R.drawable.ic_assignment)
@@ -154,7 +150,7 @@ fun HomeScreen(navController: NavController = rememberNavController(),
                             label = "Assignment",
                             icon = newsLetterIcon
                         ) {
-                            Toast.makeText(context, "Assignment", Toast.LENGTH_SHORT).show()
+                            navController.navigate(Screens.Assignment.withArg(userId, sessionToken))
                         }
                     }
 
@@ -164,7 +160,7 @@ fun HomeScreen(navController: NavController = rememberNavController(),
                             label = "Articles",
                             icon = newsLetterIcon
                         ) {
-                            Toast.makeText(context, "Articles", Toast.LENGTH_SHORT).show()
+                            navController.navigate(Screens.NewsLetter.withArg(userId, sessionToken))
                         }
                     }) {
                         val newsLetterIcon = painterResource(id = R.drawable.ic_bills)
@@ -172,7 +168,7 @@ fun HomeScreen(navController: NavController = rememberNavController(),
                             label = "School Bill",
                             icon = newsLetterIcon
                         ) {
-                            Toast.makeText(context, "School Bill", Toast.LENGTH_SHORT).show()
+                            navController.navigate(Screens.Bill.withArg(userId, sessionToken))
                         }
                     }
 

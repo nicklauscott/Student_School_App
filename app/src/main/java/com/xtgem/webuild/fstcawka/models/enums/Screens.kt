@@ -8,6 +8,9 @@ enum class Screens(val route: String) {
     NewsLetterDetail("NewsLetterDetail"),
     Course("Course"),
     CourseDetail("CourseDetail"),
+    Bill("SchoolBill"),
+    Assignment("Assignment"),
+    AssignmentDetail("AssignmentDetail"),
     Profile("Profile");
 
     fun withArg(vararg args: String): String{

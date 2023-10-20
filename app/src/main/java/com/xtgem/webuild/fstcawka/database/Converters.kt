@@ -160,4 +160,24 @@ class Converters {
         return paymentIdList
     }
 
+    // Grade List
+    @TypeConverter
+    fun fromGradeList(value: List<Grade>?): String? {
+        val gradeStringList = mutableListOf<String>()
+        value?.forEach { gradeStringList.add(it.name) }
+        return gradeStringList.joinToString(separator = ",")
+    }
+
+    @TypeConverter
+    fun toGradeList(value: String?): List<Grade> {
+        val gradeList = mutableListOf<Grade>()
+        val grades = value?.split(",")
+        if (grades != null) {
+            for (i in grades) {
+                gradeList.add(Grade.valueOf(i))
+            }
+        }
+        return gradeList
+    }
+
 }

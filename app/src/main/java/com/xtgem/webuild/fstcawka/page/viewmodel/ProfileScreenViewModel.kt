@@ -1,21 +1,17 @@
 package com.xtgem.webuild.fstcawka.page.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.xtgem.webuild.fstcawka.Repository
 import com.xtgem.webuild.fstcawka.models.constants.CustomLiveData
 import com.xtgem.webuild.fstcawka.models.entities.DataResult
 import com.xtgem.webuild.fstcawka.models.entities.Student
-import com.xtgem.webuild.fstcawka.models.entities.UserSession
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.internal.wait
 import java.util.UUID
 
 class ProfileScreenViewModel(val studentId: UUID, val sessionToken: UUID): ViewModel() {
@@ -24,31 +20,26 @@ class ProfileScreenViewModel(val studentId: UUID, val sessionToken: UUID): ViewM
     val student: CustomLiveData<DataResult<Student>> = CustomLiveData()
 
     init {
-        Log.d("profile-rings", sessionToken.toString())
         getStudent()
     }
 
 
     private fun getSession() = repository.database.studentDao().getUserSession(sessionToken)
-    fun getStudent() {
+    private fun getStudent() {
         val scope = CoroutineScope(Dispatchers.Default)
         scope.launch { // launch coroutine to make background request
             delay(500L)
             val session = getSession()
-            Log.d("profile-rings", "1: $session")
             if (session != null && session.sessionValidity()) {
-                Log.d("profile-rings", "2: $session")
                 val getStudent = repository.database.studentDao().getStudentNoLiveData(studentId)
                 withContext(Dispatchers.Main) {// switched to main thread with context to set value
-                    Log.d("profile-rings", "3: $session")
                     student.updateValue(DataResult(data = getStudent, isLoading = false, sessionInvalid = true))
                 }
             }else {
-                Log.d("profile-rings", "4: $session")
                 withContext(Dispatchers.Main) {
-                    Log.d("profile-rings", "5: $session")// switched to main thread with context to set value
                     student.updateValue(DataResult(isLoading = false, sessionInvalid = false))
                 }
+
             }
             scope.cancel()
         }
@@ -75,8 +66,8 @@ class ProfileScreenViewModel(val studentId: UUID, val sessionToken: UUID): ViewM
 
     fun logoutStudent() {
         cancelSessionToken()
-        //getStudent()
     }
+
 }
 
 class ProfileScreenViewModelFactory(private val studentId: String, private val sessionToken: String): ViewModelProvider.Factory{

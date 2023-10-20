@@ -4,12 +4,19 @@ import android.provider.ContactsContract.Data
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
+import com.github.javafaker.Faker
 import com.xtgem.webuild.fstcawka.database.FSTCAwkaDatabase
 import com.xtgem.webuild.fstcawka.models.constants.Session
+import com.xtgem.webuild.fstcawka.models.constants.getAllAssignmentHoldersModel
+import com.xtgem.webuild.fstcawka.models.entities.Assignment
+import com.xtgem.webuild.fstcawka.models.entities.AssignmentContent
+import com.xtgem.webuild.fstcawka.models.entities.AssignmentResult
 import com.xtgem.webuild.fstcawka.models.entities.Courses
 import com.xtgem.webuild.fstcawka.models.entities.DataResult
 import com.xtgem.webuild.fstcawka.models.entities.News
+import com.xtgem.webuild.fstcawka.models.entities.PaymentDetail
 import com.xtgem.webuild.fstcawka.models.entities.Student
+import com.xtgem.webuild.fstcawka.models.entities.StudentBills
 import com.xtgem.webuild.fstcawka.models.entities.UserSession
 import com.xtgem.webuild.fstcawka.models.enums.Bills
 import com.xtgem.webuild.fstcawka.models.enums.Gender
@@ -20,6 +27,7 @@ import com.xtgem.webuild.fstcawka.models.relations.ABillAndItsPaymentList
 import com.xtgem.webuild.fstcawka.models.relations.ASubjectAndItsSemesters
 import com.xtgem.webuild.fstcawka.models.relations.AllSubjectAndSAllSemesters
 import com.xtgem.webuild.fstcawka.models.relations.AssignmentContentAndResult
+import com.xtgem.webuild.fstcawka.models.relations.AssignmentWithResults
 import com.xtgem.webuild.fstcawka.models.relations.CourseAndReaction
 import com.xtgem.webuild.fstcawka.models.temp.TemporalNews
 import com.xtgem.webuild.fstcawka.models.temp.news
@@ -71,17 +79,6 @@ abstract class BaseRepository {
         return billAndPayments
     }
 
-
-     fun getAssignmentContentAndResult(assignmentId: UUID): LiveData<DataResult<List<AssignmentContentAndResult>>>{
-        val assignmentContentAndResult = MediatorLiveData<DataResult<List<AssignmentContentAndResult>>>()
-        assignmentContentAndResult.value = DataResult(isLoading = true)
-        val getAssignmentContentAndResult = database.studentDao().getAssignmentContentAndResult(assignmentId)
-        assignmentContentAndResult.addSource(getAssignmentContentAndResult) { data ->
-            assignmentContentAndResult.value = DataResult(data = data, isLoading = false)
-        }
-        return assignmentContentAndResult
-    }
-
      fun getAllNews(): LiveData<DataResult<List<News>>>{
         val allNews = MediatorLiveData<DataResult<List<News>>>()
          allNews.value = DataResult(isLoading = true)
@@ -121,15 +118,62 @@ abstract class BaseRepository {
         }
         return courseAndReaction
     }
-    fun getCourse(courseId: UUID): LiveData<DataResult<Courses>>{
-        val course = MediatorLiveData<DataResult<Courses>>()
-        course.value = DataResult(isLoading = true)
-        val getCourse = database.otherDao().getACourse(courseId)
-        course.addSource(getCourse) { data ->
-            course.value = DataResult(data = data, isLoading = false)
-        }
-        return course
+
+    private fun getSession(sessionToken: UUID): UserSession?{
+        return database.studentDao().getUserSession(sessionToken)
     }
+
+    suspend fun getAllBills(studentId: UUID, sessionToken: UUID): List<StudentBills>?{
+        val scope = CoroutineScope(Dispatchers.Default)
+        val session = scope.async { getSession(sessionToken) }.await()
+        return if (session != null && session.sessionValidity()) {
+            scope.cancel()
+            database.studentDao().getBillsAndPaymentList(studentId)
+        }else {
+            scope.cancel()
+            null
+        }
+    }
+
+
+    suspend fun getAllBillsAndPaymentDetail(studentId: UUID, sessionToken: UUID, bill: Bills): ABillAndItsPaymentList?{
+        val scope = CoroutineScope(Dispatchers.Default)
+        val session = scope.async { getSession(sessionToken) }.await()
+        return if (session != null && session.sessionValidity()) {
+            scope.cancel()
+            database.studentDao().getOneBillAndItsPaymentListNoLiveData(studentId, bill)
+        }else {
+            scope.cancel()
+            null
+        }
+    }
+
+
+    suspend fun getAlLAssignment(studentId: UUID, sessionToken: UUID): List<AssignmentWithResults>?{
+        val scope = CoroutineScope(Dispatchers.Default)
+        val session = scope.async { getSession(sessionToken) }.await()
+        return if (session != null && session.sessionValidity()) {
+            scope.cancel()
+            database.studentDao().getAllAssignmentsWithResultsForStudent(studentId)
+        }else {
+            scope.cancel()
+            null
+        }
+    }
+
+
+    suspend fun getAssignmentContent(studentId: UUID, sessionToken: UUID, assignmentId: UUID): AssignmentContentAndResult?{
+        val scope = CoroutineScope(Dispatchers.Default)
+        val session = scope.async { getSession(sessionToken) }.await()
+        return if (session != null && session.sessionValidity()) {
+            scope.cancel()
+            database.studentDao().getAssignmentContentAndResult(assignmentId, studentId)
+        }else {
+            scope.cancel()
+            null
+        }
+    }
+
 
     fun getStudent(studentId: UUID, session: UserSession?): LiveData<DataResult<Student>>{
         val student = MediatorLiveData<DataResult<Student>>()
@@ -140,18 +184,6 @@ abstract class BaseRepository {
         }
         return student
     }
-
-    fun getAllStudentByRegNO(studentId: UUID, regId: String): LiveData<DataResult<Student>>{
-        val student = MediatorLiveData<DataResult<Student>>()
-        student.value = DataResult(isLoading = true)
-        val getStudent = database.studentDao().getStudentByRegNo(studentId, regId)
-        student.addSource(getStudent) { data ->
-            student.value = DataResult(data = data, isLoading = false)
-        }
-        return student
-    }
-
-
 
 
     private fun addNews() {
@@ -171,13 +203,92 @@ abstract class BaseRepository {
         allNews.forEach { database.otherDao().insertNews(it) }
     }
 
+    private suspend fun addSchoolBills(studentId: UUID) {
+        val billAndPaymentDetail = mutableMapOf<StudentBills, List<PaymentDetail>?>()
+        for (bill in Bills.values()) {
+            val total = 10000
+            val paidAmount = (120..10000).random()
+            val balance = total - paidAmount
+            val unpaidPercentage = (((total - paidAmount.toDouble()) / total ) * 100).toInt()
+            val studentBills = StudentBills(
+                UUID.randomUUID(), studentId, bill, paidAmount, balance,
+                unpaidPercentage, total, UUID.randomUUID()
+            )
+            billAndPaymentDetail[studentBills] = studentBills.generatePaymentDetail()
+        }
+        billAndPaymentDetail.forEach { bill ->
+            database.studentDao().insertBill(bill.key)
+            bill.value?.forEach { database.studentDao().insertPayment(it) }
+        }
+    }
+
+    private fun generateAssignment(scope: CoroutineScope): List<Assignment>{
+        val addedAssignment = mutableListOf<Assignment>()
+        val allAssignments = getAllAssignmentHoldersModel()
+        for (assignment in allAssignments) {
+            val assignmentId = UUID.randomUUID()
+            val assignmentContents = mutableListOf<AssignmentContent>()
+            for (content in assignment.assignment) {
+                val assignmentContent = AssignmentContent(
+                    contentId = UUID.randomUUID(), assignmentId = assignmentId, assignment.assignment.indexOf(content),
+                    question = content.question, options = content.options, answersIndex = content.answersIndex,
+                )
+                assignmentContents.add(assignmentContent)
+            }
+            val addAssignment = Assignment.createAssignment(
+                scope = scope, title = assignment.subjects.subjectName, description = assignment.description,
+                dueDateTime = Uncategorized().generateRandomLocalDateTime(true), subject = assignment.subjects,
+                grades = assignment.grade, totalScore = assignment.assignment
+                    .sumOf { it.point ?: (assignment.assignment.size * 3) },
+                questions = assignmentContents
+            )
+            addedAssignment.add(addAssignment)
+        }
+        return addedAssignment
+    }
+
+    suspend fun generateAssignmentResultsFromDatabase(student: Student) {
+        val studentAssignmentResult = mutableListOf<AssignmentResult>()
+        val getStudentAssignment = database.studentDao().getAllAssignments()
+        for (assignment in getStudentAssignment) {
+            if (assignment.grades.contains(student.grade)) {
+                val assignmentResult = AssignmentResult(
+                    resultId = UUID.randomUUID(), assignmentId = assignment.assignmentId,
+                    studentId = student.studentId, score = 0, questionSize = assignment.questionSize,
+                    subjects = assignment.subject, creationDate = LocalDateTime.now()
+                )
+            }
+        }
+    }
+
+    fun generateAssignmentResults(assignments: List<Assignment>, student: Student): List<AssignmentResult>{
+        val studentAssignmentResult = mutableListOf<AssignmentResult>()
+        for (assignment in assignments) {
+            if (assignment.grades.contains(student.grade)) {
+                val assignmentResult = AssignmentResult(
+                    resultId = UUID.randomUUID(), assignmentId = assignment.assignmentId,
+                    studentId = student.studentId, score = 0, questionSize = assignment.questionSize,
+                    subjects = assignment.subject, creationDate = LocalDateTime.now()
+                )
+                studentAssignmentResult.add(assignmentResult)
+            }
+        }
+        return studentAssignmentResult
+    }
+
     // ae4c602d-a7aa-47af-a018-30ec6a5c67ca
-    fun addTestStudent(course: Boolean, news: Boolean) {
+    fun addTestStudent(course: Boolean, news: Boolean, bills: Boolean,
+        assignment: Boolean) {
         val password = Uncategorized.hashPassword("111111")
+        val faker = Faker()
+        val emailDomains = Uncategorized().emailDomains
+        emailDomains.shuffle()
         val student = Student(
-            UUID.fromString("ae4c602d-a7aa-47af-a018-30ec6a5c67ca"), "111111", password,
-            "Matt", "Parker", 15, "", "", Grade.JS1, LocalDateTime.now(),
-            Gender.NON_BINARY
+            UUID.randomUUID(), "111111", password,
+            faker.name().firstName(), faker.name().lastName(), 15,
+            "${faker.name().username()}@${emailDomains[(0 until emailDomains.size).random()]}",
+            faker.phoneNumber().cellPhone(), Grade.JS1, LocalDateTime.now(),
+            Gender.NON_BINARY, imageLink = faker.avatar().image()
         )
         val courses = listOf(
             Courses(UUID.randomUUID(), "Computer Science", 21, 5, 1, "", newsPoster[0]),
@@ -193,8 +304,36 @@ abstract class BaseRepository {
             database.studentDao().insertStudent(student)
             if (course) courses.forEach { database.otherDao().insertCourse(it) }
             if (news) addNews()
+            if (bills) addSchoolBills(student.studentId)
+            if (assignment) {
+                val assignments = generateAssignment(scope)
+                generateAssignmentResults(assignments, student).forEach {
+                    database.studentDao().insertAssignmentResult(it)
+                }
+            }
             scope.cancel()
         }
     }
 
 }
+
+
+
+
+/*
+
+val currentStudentsQuiz  = mutableListOf<StudentAssignmentResult>()
+                    val newAssignments = generateAssignments()
+                    for (singleAssignment in newAssignments) {
+                        if (singleAssignment.grade == grade) {
+                            val assignmentResult = StudentAssignmentResult(
+                                UUID.randomUUID(), singleAssignment.assignmentId, i.id, 0,
+                                singleAssignment.subject, singleAssignment.assignment.size, mapOf(0 to null, 1 to null, 2 to null)
+                            )
+                            currentStudentsQuiz.add(assignmentResult)
+                        }
+                    }
+                    currentStudentsQuiz.forEach { insertAssignmentResult(it) }
+
+
+ */

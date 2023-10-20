@@ -21,6 +21,7 @@ import com.xtgem.webuild.fstcawka.models.relations.ABillAndItsPaymentList
 import com.xtgem.webuild.fstcawka.models.relations.ASubjectAndItsSemesters
 import com.xtgem.webuild.fstcawka.models.relations.AllSubjectAndSAllSemesters
 import com.xtgem.webuild.fstcawka.models.relations.AssignmentContentAndResult
+import com.xtgem.webuild.fstcawka.models.relations.AssignmentWithResults
 import java.util.UUID
 
 @Dao
@@ -44,6 +45,9 @@ interface StudentDao {
     @Query("DELETE FROM assignment")
     fun clearAssignment()
 
+    @Query("DELETE FROM assignmentResult")
+    fun clearAssignmentResult()
+
     @Query("DELETE FROM assignmentContent")
     fun clearAssignmentContent()
 
@@ -63,10 +67,13 @@ interface StudentDao {
     suspend fun insertBill(bill: StudentBills)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertPayment(paymentList: PaymentDetail)
+    suspend fun insertPayment(paymentDetail: PaymentDetail)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAssignment(assignment: Assignment)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAssignmentResult(assignmentResult: AssignmentResult)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAssignmentContent(assignmentContent: AssignmentContent)
@@ -93,6 +100,10 @@ interface StudentDao {
     @Query("SELECT * FROM userSession WHERE sessionToken = :sessionToken")
     fun getUserSession(sessionToken: UUID): UserSession?
 
+
+    @Query("SELECT * FROM userSession WHERE studentID =:studentID")
+    fun getAllSessionForAUser(studentID: UUID): List<UserSession>?
+
     @Transaction
     @Query("SELECT * FROM subject WHERE studentId = :studentId")
     fun getSubjectAndSemester(studentId: UUID): LiveData<List<AllSubjectAndSAllSemesters>>
@@ -110,6 +121,10 @@ interface StudentDao {
     fun getOneBillAndItsPaymentList(studentId: UUID, bill: Bills): LiveData<List<ABillAndItsPaymentList>>
 
     @Transaction
+    @Query("SELECT * FROM studentBills WHERE studentId = :studentId AND bill =:bill")
+    fun getOneBillAndItsPaymentListNoLiveData(studentId: UUID, bill: Bills): ABillAndItsPaymentList?
+
+    @Transaction
     @Query("SELECT * FROM assignment")
     suspend fun getAllAssignments(): List<Assignment>
 
@@ -118,9 +133,12 @@ interface StudentDao {
     suspend fun getAllAssignmentResults(): List<AssignmentResult>
 
     @Transaction
-    @Query("SELECT * FROM assignmentResult WHERE assignmentId = :assignmentId ORDER BY creationDate")
-    fun getAssignmentContentAndResult(assignmentId: UUID): LiveData<List<AssignmentContentAndResult>>
+    @Query("SELECT * FROM assignmentResult WHERE assignmentId = :assignmentId AND studentId =:studentId ORDER BY creationDate")
+    fun getAssignmentContentAndResult(assignmentId: UUID, studentId: UUID): AssignmentContentAndResult?
 
+    @Transaction
+    @Query("SELECT * FROM Assignment WHERE assignmentId IN (SELECT assignmentId FROM AssignmentResult WHERE studentId = :studentId)")
+    fun getAllAssignmentsWithResultsForStudent(studentId: UUID): List<AssignmentWithResults>?
 
 
 }
