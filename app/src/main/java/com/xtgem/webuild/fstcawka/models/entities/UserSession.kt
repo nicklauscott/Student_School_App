@@ -2,6 +2,7 @@ package com.xtgem.webuild.fstcawka.models.entities
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.time.Duration
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
 import java.util.UUID
@@ -14,7 +15,13 @@ data class UserSession(
     val active: Boolean,
     val creationDate: LocalDateTime
 ) {
-    fun sessionValidity() = (ChronoUnit.DAYS.between(creationDate, LocalDateTime.now()) <= 3 && active)
+    fun sessionValidity() = (calculateMinutes(creationDate, LocalDateTime.now()) <= 20000 && active)
+
+    // fun sessionValidity() = (ChronoUnit.DAYS.between(creationDate, LocalDateTime.now()) <= 1 && active)
+    private fun calculateMinutes(dateTime1: LocalDateTime, dateTime2: LocalDateTime): Long {
+        val duration = Duration.between(dateTime1, dateTime2)
+        return duration.toMinutes()
+    }
 }
 
 

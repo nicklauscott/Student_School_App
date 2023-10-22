@@ -35,7 +35,7 @@ class Repository(context: Context): BaseRepository() {
 
 
     init {
-        //addTestStudent(course = true, news = true, bills = true, assignment = true )
+        //addTestStudent(course = true, news = true, bills = true, assignment = true, result = true)
     }
 
 }

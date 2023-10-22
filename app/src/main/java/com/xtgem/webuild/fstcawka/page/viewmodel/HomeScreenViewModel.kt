@@ -38,6 +38,15 @@ class HomeScreenViewModel(val studentId: UUID, val sessionToken: UUID): ViewMode
         }
     }
 
+    fun logOut() {
+        viewModelScope.launch(Dispatchers.Default) {
+            val getSession = repository.database.studentDao().getUserSession(sessionToken)?.copy(active = false)
+            if (getSession != null) {
+                repository.database.studentDao().insertUserSession(getSession)
+            }
+        }
+    }
+
     private fun convertGlobalTime() {
         val timeList = mutableListOf<String>()
         val currentTime = LocalTime.now()

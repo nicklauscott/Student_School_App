@@ -5,9 +5,6 @@ import androidx.room.Relation
 import com.xtgem.webuild.fstcawka.models.entities.Assignment
 import com.xtgem.webuild.fstcawka.models.entities.AssignmentContent
 import com.xtgem.webuild.fstcawka.models.entities.AssignmentResult
-import com.xtgem.webuild.fstcawka.models.entities.Semester
-import com.xtgem.webuild.fstcawka.models.entities.Student
-import com.xtgem.webuild.fstcawka.models.entities.Subject
 
 data class AssignmentContentAndResult(
     @Embedded val result: AssignmentResult,

@@ -11,6 +11,8 @@ enum class Screens(val route: String) {
     Bill("SchoolBill"),
     Assignment("Assignment"),
     AssignmentDetail("AssignmentDetail"),
+    Result("Result"),
+    ResultDetail("ResultDetail"),
     Profile("Profile");
 
     fun withArg(vararg args: String): String{

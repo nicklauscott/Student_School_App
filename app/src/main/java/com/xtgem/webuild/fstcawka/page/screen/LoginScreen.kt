@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,13 +42,10 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.xtgem.webuild.fstcawka.MainActivity
 import com.xtgem.webuild.fstcawka.R
 import com.xtgem.webuild.fstcawka.models.constants.LoginStatus
 import com.xtgem.webuild.fstcawka.models.constants.State
-import com.xtgem.webuild.fstcawka.models.entities.DataResult
 import com.xtgem.webuild.fstcawka.models.enums.Screens
-import com.xtgem.webuild.fstcawka.models.relations.CourseAndReaction
 import com.xtgem.webuild.fstcawka.page.component.LoadingData
 import com.xtgem.webuild.fstcawka.page.viewmodel.LoginScreenViewModel
 import com.xtgem.webuild.fstcawka.page.widget.CustomButton1
@@ -57,9 +53,6 @@ import com.xtgem.webuild.fstcawka.page.widget.InputText
 import com.xtgem.webuild.fstcawka.page.widget.PasswordInputField
 import com.xtgem.webuild.fstcawka.ui.theme.custom.MyFonts
 import com.xtgem.webuild.fstcawka.ui.theme.custom.Theme
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import java.util.UUID
 
 @Preview
 @Composable
@@ -77,8 +70,7 @@ fun LoginScreen(navController: NavController = rememberNavController()) {
     LaunchedEffect(Unit) {
         viewModel.status.observeForever { status ->
             loginStatus.value = status
-        }
-    }
+        } }
     val context = LocalContext.current
 
     val toast: Toast?
@@ -97,11 +89,12 @@ fun LoginScreen(navController: NavController = rememberNavController()) {
     }
 
     val regNumber = remember {
-        mutableStateOf("")
+        mutableStateOf(if (viewModel.savedPreference.regLogin) viewModel.savedPreference.regId
+        else viewModel.savedPreference.studentId)
     }
 
     val password = remember {
-        mutableStateOf("")
+        mutableStateOf(viewModel.savedPreference.password)
     }
 
     val interactPassword = remember {
@@ -123,7 +116,7 @@ fun LoginScreen(navController: NavController = rememberNavController()) {
     }
 
     val regIdLogin = remember {
-        mutableStateOf(true)
+        mutableStateOf(viewModel.savedPreference.regLogin)
     }
 
     if (loginStatus.value.status == true) {
@@ -239,10 +232,7 @@ fun LoginScreen(navController: NavController = rememberNavController()) {
                         interactionSource = interactRegNo,
                         isFieldBlank = isRegNoBlank.value,
                         onTextChange = {
-                            if (it.all { char ->
-                                    if (regIdLogin.value) char.isDigit()
-                                    else char.isDigit() || char.isLetter()
-                                }) regNumber.value = it
+                            regNumber.value = it
                             isRegNoBlank.value = false
                         })
                 }
@@ -274,8 +264,9 @@ fun LoginScreen(navController: NavController = rememberNavController()) {
                 Column(modifier = Modifier
                     .fillMaxWidth()
                     .height(
-                        if (loginStatus.value.checking == true)  0.dp
-                        else 80.dp)
+                        if (loginStatus.value.checking == true) 0.dp
+                        else 80.dp
+                    )
                 ) {
                     val buttonModifier = Modifier.height(60.dp)
                     CustomButton1(buttonText = "Login",

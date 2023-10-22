@@ -16,6 +16,7 @@ import com.xtgem.webuild.fstcawka.page.screen.LoginScreen
 import com.xtgem.webuild.fstcawka.page.screen.NewsLetterDetailScreen
 import com.xtgem.webuild.fstcawka.page.screen.NewsLetterScreen
 import com.xtgem.webuild.fstcawka.page.screen.ProfileScreen
+import com.xtgem.webuild.fstcawka.page.screen.ResultScreen
 import com.xtgem.webuild.fstcawka.page.screen.SchoolBillScreen
 import com.xtgem.webuild.fstcawka.page.screen.SplashScreen
 import java.util.UUID
@@ -242,6 +243,48 @@ fun Navigation() {
                     if (assignmentId != null) {
                         AssignmentDetail(userId = it, sessionToken = sessionToken,
                             assignmentId = assignmentId)
+                    }
+                }
+            }
+        }
+
+
+        // Result
+        composable(
+            route = Screens.Result.route + "/{userId}/{tokenId}/{subject}/{semester}",
+            arguments = listOf(
+                navArgument("userId") {
+                    type = NavType.StringType
+                    defaultValue = UUID.randomUUID().toString()
+                    nullable = true
+                },
+                navArgument("tokenId") {
+                    type = NavType.StringType
+                    defaultValue = UUID.randomUUID().toString()
+                    nullable = true
+                },
+                navArgument("subject") {
+                    type = NavType.StringType
+                    defaultValue = UUID.randomUUID().toString()
+                    nullable = true
+                },
+                navArgument("semester") {
+                    type = NavType.StringType
+                    defaultValue = UUID.randomUUID().toString()
+                    nullable = true
+                }
+            )
+        ) { entry ->
+            val sessionToken = entry.arguments?.getString("tokenId")
+            val subject = entry.arguments?.getString("subject")
+            val semester = entry.arguments?.getString("semester")
+            entry.arguments?.getString("userId")?.let {
+                if (sessionToken != null) {
+                    if (subject != null) {
+                        if (semester != null) {
+                            ResultScreen(userId = it, sessionToken = sessionToken,
+                                subject = subject, semester = semester, navController = navController)
+                        }
                     }
                 }
             }

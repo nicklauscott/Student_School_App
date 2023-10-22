@@ -763,7 +763,6 @@ fun UpdateImageDialog(student: Student, context: Context,
     }
 
     val toast = Toast.makeText(context, "Invalid Image URL", Toast.LENGTH_SHORT)
-    Log.d("illScreenViewMos", student.imageLink)
 
     Dialog(onDismissRequest = { onDismiss(student) }) {
         Surface(modifier = Modifier

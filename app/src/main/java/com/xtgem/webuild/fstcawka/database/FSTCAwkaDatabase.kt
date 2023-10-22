@@ -12,15 +12,14 @@ import com.xtgem.webuild.fstcawka.models.entities.CourseReactions
 import com.xtgem.webuild.fstcawka.models.entities.Courses
 import com.xtgem.webuild.fstcawka.models.entities.News
 import com.xtgem.webuild.fstcawka.models.entities.PaymentDetail
-import com.xtgem.webuild.fstcawka.models.entities.Semester
 import com.xtgem.webuild.fstcawka.models.entities.Student
 import com.xtgem.webuild.fstcawka.models.entities.StudentBills
-import com.xtgem.webuild.fstcawka.models.entities.Subject
+import com.xtgem.webuild.fstcawka.models.entities.StudentResult
 import com.xtgem.webuild.fstcawka.models.entities.UserSession
 
 @Database(
     entities = [
-        Semester::class, Student::class, Subject::class,
+        Student::class, StudentResult::class,
         StudentBills::class, PaymentDetail::class,
         Assignment::class, AssignmentContent::class, AssignmentResult::class,
         Courses::class, News::class, CourseReactions::class, UserSession::class

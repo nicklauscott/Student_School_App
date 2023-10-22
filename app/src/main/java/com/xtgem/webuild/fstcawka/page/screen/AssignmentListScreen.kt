@@ -259,8 +259,6 @@ fun AssignmentCell(
                             .fillMaxHeight(),
                             color = MaterialTheme.colorScheme.primary
                         )
-                        Log.d("illScreenViewMos", "answered: ${assignmentResult.questionWithAnsweredIndex.values.filterNotNull().size}" +
-                                " Total: ${assignment.questionSize.toDouble()}")
                     }
                 }
             }

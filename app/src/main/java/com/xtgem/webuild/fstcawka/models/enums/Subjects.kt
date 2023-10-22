@@ -13,5 +13,6 @@ enum class Subjects(val subjectName: String){
     BasicTech("Basic Technology"),
     Physics("Physics"),
     Chemistry("Chemistry"),
-    French("French")
+    French("French"),
+    All("All Subject")
 }

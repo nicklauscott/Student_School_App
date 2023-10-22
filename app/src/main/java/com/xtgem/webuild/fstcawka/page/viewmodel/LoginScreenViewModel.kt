@@ -1,6 +1,5 @@
 package com.xtgem.webuild.fstcawka.page.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.xtgem.webuild.fstcawka.Repository
@@ -24,10 +23,12 @@ import java.util.UUID
 
 class LoginScreenViewModel: ViewModel() {
     private val repository = Repository.get()
+    private val preferenceRepository = PreferenceRepository.getInstance()
 
+    val savedPreference = preferenceRepository.loginPreference
     val status = CustomLiveData<LoginStatus>()
-
     private  var _newSession = Session(UUID.randomUUID(), UUID.randomUUID())
+
     fun getSessionDetail() = Session(
         sessionToken = _newSession.sessionToken,
         studentID = _newSession.studentID
@@ -40,7 +41,7 @@ class LoginScreenViewModel: ViewModel() {
             val preferenceRepository = PreferenceRepository.getInstance()
             repository.database.studentDao().insertUserSession(userSession)
             preferenceRepository.setStudentLoginDetails(
-                regLogin = regLogin, regId = regId.trim().toInt(), studentId = studentId.toString(),
+                regLogin = regLogin, regId = regId.trim(), studentId = studentId.toString(),
                 password = password, sessionToken = sessionToken
             )
             scope.cancel()
@@ -60,7 +61,7 @@ class LoginScreenViewModel: ViewModel() {
                 try {
                     userUUID = UUID.fromString(studentId)
                 }catch (_: Exception) { }
-                student = repository.database.studentDao().getStudentByRegNoNoLiveData(userUUID, regId)
+                student = repository.database.studentDao().getStudentNoLiveData(userUUID)
             }
              scope.cancel()
         }

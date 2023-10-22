@@ -1,7 +1,6 @@
 package com.xtgem.webuild.fstcawka.models.constants
 
 import android.content.Context
-import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.booleanPreferencesKey
@@ -43,11 +42,11 @@ class PreferenceRepository(
     }
 
     suspend fun setStudentLoginDetails(
-        regLogin: Boolean, regId: Int, studentId: String,
+        regLogin: Boolean, regId: String, studentId: String,
         password: String, sessionToken: UUID) {
         dataStore.edit {
             it[REG_LOGIN] = regLogin
-            it[REG_ID] = regId.toString()
+            it[REG_ID] = regId
             it[STUDENT_ID] = studentId
             it[PASSWORD] = password
             it[SESSION_TOKEN] = sessionToken.toString()

@@ -1,7 +1,5 @@
 package com.xtgem.webuild.fstcawka.page.screen
 
-import android.content.Context
-import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -196,12 +194,13 @@ fun HomeScreen(navController: NavController = rememberNavController(),
                         Text(text = "Check Results", fontSize = 30.sp, style = MaterialTheme.typography.headlineMedium)
                     }
 
-                    CheckResult(context) {
-
+                    CheckResult { resultOf ->
+                        if (resultOf.semester != null && resultOf.subject != null) {
+                            navController.navigate(Screens.Result.withArg(
+                                userId, sessionToken, resultOf.subject.name, resultOf.semester.name))
+                        }
                     }
                 }
-
-
             }
 
         }
@@ -210,9 +209,14 @@ fun HomeScreen(navController: NavController = rememberNavController(),
 
 
 
+data class SpinnerHelper(
+    val subject: Subjects? = null,
+    val semester: Semesters? = null,
+    val resultOf: SpinnerHelper? = null
+)
 
 @Composable
-fun CheckResult(context: Context, onClick: () -> Unit) {
+fun CheckResult(onClick: (SpinnerHelper) -> Unit) {
     Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp)) {
 
         val spinnerHelper = remember {
@@ -254,7 +258,6 @@ fun CheckResult(context: Context, onClick: () -> Unit) {
                         subjects = Subjects.values()) {
                         spinnerHelper.value = spinnerHelper.value.copy(subject = it.subject)
                         isSubjectEmpty.value = false
-                        Toast.makeText(context, "${it.subject?.subjectName}", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -282,7 +285,6 @@ fun CheckResult(context: Context, onClick: () -> Unit) {
                         semesters = Semesters.values()) {
                         spinnerHelper.value = spinnerHelper.value.copy(semester = it.semester)
                         isSemesterEmpty.value = false
-                        Toast.makeText(context, "${it.semester?.name}", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -298,9 +300,9 @@ fun CheckResult(context: Context, onClick: () -> Unit) {
                     if (spinnerHelper.value.subject == null) isSubjectEmpty.value = true
                     if (spinnerHelper.value.semester == null) isSemesterEmpty.value = true
                     if (spinnerHelper.value.subject != null
-                        && spinnerHelper.value.semester == null) {
+                        && spinnerHelper.value.semester != null) {
                         // check for result
-                        onClick()
+                        onClick(SpinnerHelper(subject = spinnerHelper.value.subject, semester = spinnerHelper.value.semester))
                     }
                 }
         }
@@ -308,12 +310,6 @@ fun CheckResult(context: Context, onClick: () -> Unit) {
         Spacer(modifier = Modifier.height(300.dp))
     }
 }
-
-data class SpinnerHelper(
-    val subject: Subjects? = null,
-    val semester: Semesters? = null,
-    val resultOf: SpinnerHelper? = null
-)
 
 @Composable
 fun SpinnerPicker(label: String, subjects: Array<Subjects>? = null,
@@ -359,7 +355,7 @@ fun SpinnerPicker(label: String, subjects: Array<Subjects>? = null,
                 DropdownMenuItem(text = { Text(text = subject.subjectName,
                     style = MaterialTheme.typography.headlineSmall) },
                     onClick = {
-                        selectedItem.value = subject.subjectName
+                        selectedItem.value = subject.name
                         expanded.value = false
                         onClick(
                             SpinnerHelper(
