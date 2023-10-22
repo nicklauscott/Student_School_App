@@ -83,8 +83,8 @@ class LoginScreenViewModel: ViewModel() {
                             active = true,
                             creationDate = LocalDateTime.now()
                         )
-                        saveLoginData(userSession, regLogin, regId, student!!.studentId, textPassword, generateSessionId)
                         _newSession = Session(sessionToken = generateSessionId, studentID = student!!.studentId)
+                        saveLoginData(userSession, regLogin, regId, student!!.studentId, textPassword, generateSessionId)
                         status.updateValue(LoginStatus(checking = true, status = true, userId = student!!.studentId.toString()))
                     }
                     else {

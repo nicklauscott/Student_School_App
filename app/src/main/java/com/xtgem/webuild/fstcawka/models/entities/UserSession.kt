@@ -15,7 +15,7 @@ data class UserSession(
     val active: Boolean,
     val creationDate: LocalDateTime
 ) {
-    fun sessionValidity() = (calculateMinutes(creationDate, LocalDateTime.now()) <= 20000 && active)
+    fun sessionValidity() = (calculateMinutes(creationDate, LocalDateTime.now()) <= 60 && active)
 
     // fun sessionValidity() = (ChronoUnit.DAYS.between(creationDate, LocalDateTime.now()) <= 1 && active)
     private fun calculateMinutes(dateTime1: LocalDateTime, dateTime2: LocalDateTime): Long {

@@ -3,20 +3,16 @@ package com.xtgem.webuild.fstcawka.page.screen
 import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -24,19 +20,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
-import androidx.compose.material3.DrawerDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -47,26 +39,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.gandiva.neumorphic.neu
-import com.gandiva.neumorphic.shape.RoundedCorner
 import com.xtgem.webuild.fstcawka.models.entities.DataResult
-import com.xtgem.webuild.fstcawka.models.entities.Semester
 import com.xtgem.webuild.fstcawka.models.entities.Student
-import com.xtgem.webuild.fstcawka.models.entities.StudentBills
 import com.xtgem.webuild.fstcawka.models.entities.StudentResult
-import com.xtgem.webuild.fstcawka.models.enums.PaymentMethod
+import com.xtgem.webuild.fstcawka.models.enums.Screens
 import com.xtgem.webuild.fstcawka.models.enums.Semesters
-import com.xtgem.webuild.fstcawka.models.enums.Subjects
 import com.xtgem.webuild.fstcawka.page.component.ErrorMessage
 import com.xtgem.webuild.fstcawka.page.component.ErrorPage
 import com.xtgem.webuild.fstcawka.page.component.InvalidSessionFrame
@@ -74,8 +59,6 @@ import com.xtgem.webuild.fstcawka.page.component.LoadingData
 import com.xtgem.webuild.fstcawka.page.viewmodel.ResultScreenViewModel
 import com.xtgem.webuild.fstcawka.page.viewmodel.ResultScreenViewModelFactory
 import com.xtgem.webuild.fstcawka.ui.theme.custom.MyFonts
-import com.xtgem.webuild.fstcawka.ui.theme.custom.defaultPressedNetAttrs
-import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -120,7 +103,7 @@ fun ResultScreen(userId: String, sessionToken: String,
                         val data = result.value.data
                         if (data != null) {
                             ResultList(result = data, semester) {
-
+                                navController.navigate(Screens.ResultDetail.withArg(userId, sessionToken, it.resultId.toString()))
                             }
                         }else {
                             ErrorMessage(
@@ -136,7 +119,6 @@ fun ResultScreen(userId: String, sessionToken: String,
     }
 
 }
-
 
 @Composable
 fun ResultList(result: List<StudentResult>, semester: String, onclickResult: (StudentResult) -> Unit) {

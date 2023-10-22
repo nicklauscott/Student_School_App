@@ -86,6 +86,9 @@ interface StudentDao {
     @Query("SELECT * FROM StudentResult WHERE studentId = :studentId")
     fun getAllSubjectAndAllSemester(studentId: UUID): List<StudentResult>
 
+    @Query("SELECT * FROM StudentResult WHERE resultId = :resultId")
+    fun getResultById(resultId: UUID): StudentResult?
+
     @Query("SELECT * FROM StudentResult WHERE studentId = :studentId AND semester = :semester")
     fun getAllSubjectAndOneSemester(studentId: UUID, semester: Semesters): List<StudentResult>?
 

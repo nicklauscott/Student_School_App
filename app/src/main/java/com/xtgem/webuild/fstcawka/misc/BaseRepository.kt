@@ -215,6 +215,18 @@ abstract class BaseRepository {
         }
     }
 
+    suspend  fun getResultById(studentId: UUID, sessionToken: UUID, resultId: UUID): StudentResult?{
+        val scope = CoroutineScope(Dispatchers.Default)
+        val session = scope.async { getSession(sessionToken) }.await()
+        return if (session != null && session.sessionValidity()) {
+            scope.cancel()
+            database.studentDao().getResultById(resultId)
+        }else {
+            scope.cancel()
+            null
+        }
+    }
+
 
     private fun addNews() {
         val allNews = mutableListOf<News>()

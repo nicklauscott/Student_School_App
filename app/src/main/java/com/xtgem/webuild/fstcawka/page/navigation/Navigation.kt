@@ -16,6 +16,7 @@ import com.xtgem.webuild.fstcawka.page.screen.LoginScreen
 import com.xtgem.webuild.fstcawka.page.screen.NewsLetterDetailScreen
 import com.xtgem.webuild.fstcawka.page.screen.NewsLetterScreen
 import com.xtgem.webuild.fstcawka.page.screen.ProfileScreen
+import com.xtgem.webuild.fstcawka.page.screen.ResultDetailScreen
 import com.xtgem.webuild.fstcawka.page.screen.ResultScreen
 import com.xtgem.webuild.fstcawka.page.screen.SchoolBillScreen
 import com.xtgem.webuild.fstcawka.page.screen.SplashScreen
@@ -290,6 +291,37 @@ fun Navigation() {
             }
         }
 
-
+        // Result Detail
+        composable(
+            route = Screens.ResultDetail.route + "/{userId}/{tokenId}/{resultId}",
+            arguments = listOf(
+                navArgument("userId") {
+                    type = NavType.StringType
+                    defaultValue = UUID.randomUUID().toString()
+                    nullable = true
+                },
+                navArgument("tokenId") {
+                    type = NavType.StringType
+                    defaultValue = UUID.randomUUID().toString()
+                    nullable = true
+                },
+                navArgument("resultId") {
+                    type = NavType.StringType
+                    defaultValue = UUID.randomUUID().toString()
+                    nullable = true
+                }
+            )
+        ) { entry ->
+            val sessionToken = entry.arguments?.getString("tokenId")
+            val resultId = entry.arguments?.getString("resultId")
+            entry.arguments?.getString("userId")?.let {
+                if (sessionToken != null) {
+                    if (resultId != null) {
+                        ResultDetailScreen(userId = it, sessionToken = sessionToken,
+                            resultId = resultId)
+                    }
+                }
+            }
+        }
     }
 }
